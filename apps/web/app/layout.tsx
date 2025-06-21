@@ -22,9 +22,9 @@ export default function RootLayout({
   
 
   return (
-    <html lang="en">
+    <html suppressHydrationWarning={true} lang="en">
       <SessionProvider>
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <body className={`${geistSans.variable} ${geistMono.variable} bg-neutral-100 dark:bg-neutral-900`}>
           {children}
         </body>
       </SessionProvider>

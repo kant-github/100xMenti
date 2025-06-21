@@ -5,12 +5,21 @@ import { Button } from "../ui/button";
 import { useSessionStore } from "@/zustand/sessionZustand";
 import LoginModal from "../ui/LoginModal";
 import JoinQuizModal from "../ui/JoinQuizModal";
+import { v4 as uuidv4 } from 'uuid';
+import { useRouter } from "next/navigation";
+
 
 
 export default function NavBar() {
     const { session } = useSessionStore();
     const [openLoginModal, setOpenLoginModal] = useState<boolean>(false);
     const [openQuizModal, setOpenJoinQuizModal] = useState<boolean>(false);
+    const router = useRouter()
+    function createQuizHandler() {
+        const uuid = uuidv4();
+        router.push(`/new/${uuid}`);
+    }
+
     return (
         <div className="w-full h-20 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-between px-12">
             <AppLogo />
@@ -20,8 +29,8 @@ export default function NavBar() {
                 </Button>
 
                 {session ? (
-                    <Button variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 hover:bg-neutral-100 transition rounded-xl">
-                        Home
+                    <Button onClick={createQuizHandler} variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 hover:bg-neutral-100 transition rounded-xl">
+                        Create
                     </Button>
                 ) : (
                     <Button onClick={() => setOpenLoginModal(true)} variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 hover:bg-neutral-100 transition rounded-xl">

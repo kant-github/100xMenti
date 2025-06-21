@@ -13,7 +13,8 @@ export default function LoginModal({ setOpenLoginModal }: LoginModalProps) {
 
     async function signinUser() {
         signIn('google', {
-            redirect: false
+            redirect: false,
+            callbackUrl: "/",
         })
     }
 
@@ -29,7 +30,7 @@ export default function LoginModal({ setOpenLoginModal }: LoginModalProps) {
                     </p>
                 </div>
 
-                <Button onClick={signinUser} className="w-full flex items-center justify-center gap-3 px-6 py-5 text-sm font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 rounded-xl">
+                <Button onClick={signinUser} className="w-full flex items-center justify-center gap-3 px-6 py-5 text-sm font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 rounded-xl border-[1px] border-neutral-200">
                     <Image
                         src="/google-images/google.png"
                         height={24}

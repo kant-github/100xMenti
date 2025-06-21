@@ -18,7 +18,7 @@ export default function Home() {
     }
   }, [sessionToken, setSession]);
   return (
-    <div className="bg-neutral-100 h-screen">
+    <div className="bg-neutral-100 dark:bg-neutral-900 h-screen">
       <NavBar />
     </div>
   )

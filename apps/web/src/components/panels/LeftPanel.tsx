@@ -1,46 +1,40 @@
-import React, { useState } from 'react';
-import { Eye, Clock, BookOpen } from 'lucide-react';
+import { RxCross2 } from "react-icons/rx";
 import { templates } from './Panels';
-import { useQuizDataStore } from '@/zustand/quizStore';
-
-
+import { useCurrentQuestionStore, useQuizDataStore } from '@/zustand/quizStore';
+import { IoIosCheckmark } from "react-icons/io";
+import { BookOpen, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function LeftPanel() {
 
     const { quizData } = useQuizDataStore();
-
-    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const { currentQuestion } = useCurrentQuestionStore();
     const currentQ = quizData.questions[currentQuestion];
     const selectedTemplate = templates.find(t => t.id === quizData.template);
 
+    const [votes, setVotes] = useState([0, 0, 0, 0]);
 
-    const PreviewPanel = () => (
-        <div className={`h-full flex flex-col ${selectedTemplate.bg}`}>
-            {/* Preview Header */}
-            <div className="text-white p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    <span className="font-medium">Live Preview</span>
-                </div>
-                <div className="text-sm text-gray-300">
-                    Question {currentQuestion + 1} of {quizData.totalQuestions}
-                </div>
-            </div>
+    useEffect(() => {
+        // Generate new target values every 1 second
+        const interval = setInterval(() => {
+            setVotes(prev => {
+                return prev.map(() => {
+                    // Generate completely new random values between 10-90
+                    return Math.floor(Math.random() * 80) + 10;
+                });
+            });
+        }, 1000); // Update every 1 second
 
-            {/* Quiz Preview */}
-            <div className={`flex-1 p-8 flex flex-col justify-center relative overflow-hidden`}>
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="w-full h-full" style={{
-                        backgroundImage: `radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                             radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)`
-                    }} />
-                </div>
+        return () => clearInterval(interval);
+    }, [currentQuestion]);
 
-                {/* Quiz Title */}
-                <div className="text-center mb-12 relative z-10">
-                    <h1 className="text-4xl font-bold text-white mb-2">{quizData.title}</h1>
-                    <div className="flex items-center justify-center gap-6 text-white/80 text-sm">
+    return (
+        <div className={`w-[70%] h-full overflow-hidden`}>
+            <div className="h-full shadow-lg flex flex-col items-center justify-center px-4">
+
+                <div className="text-center mb-8 lg:my-12 relative z-10">
+                    <h1 className="text-center text-2xl lg:text-3xl font-mono font-normal mb-2">{quizData.title}</h1>
+                    <div className="flex items-center justify-center gap-4 lg:gap-6 text-sm lg:text-base font-light">
                         <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
                             <span>{currentQ?.timing || quizData.timing}s per question</span>
@@ -52,54 +46,70 @@ export default function LeftPanel() {
                     </div>
                 </div>
 
-                {/* Question Display */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl relative z-10 max-w-4xl mx-auto w-full">
-                    <div className="text-center mb-8">
-                        <div className="text-lg font-medium text-gray-600 mb-2">
+                {/* FIXED CONTAINER - Now has consistent dimensions */}
+                <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-md flex flex-col"
+                    style={{
+                        backgroundColor: selectedTemplate.bg
+                    }}
+                >
+                    {/* Question header - Fixed height */}
+                    <div className="text-center mb-6 lg:mb-8 flex-shrink-0">
+                        <div className="text-sm lg:text-base font-medium text-neutral-950 mb-2">
                             Question {currentQuestion + 1}
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800 leading-relaxed">
-                            {currentQ?.question}
-                        </h2>
+                        <div className="h-20 sm:h-24 lg:h-28 flex items-center justify-center">
+                            <h2 className="text-xl sm:text-2xl lg:text-3xl text-neutral-950 leading-relaxed text-center px-2 max-w-[40rem] overflow-hidden">
+                                {currentQ?.question}
+                            </h2>
+                        </div>
                     </div>
 
-                    {/* Options */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {currentQ?.options.map((option, idx) => (
-                            <div
-                                key={idx}
-                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer hover:scale-[1.02] ${currentQ.correctAnswer === idx
-                                    ? `${selectedTemplate.accent} border-white text-white shadow-lg`
-                                    : 'bg-gray-50 border-gray-200 text-gray-800 hover:border-gray-300'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentQ.correctAnswer === idx ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-600'
-                                        }`}>
-                                        {String.fromCharCode(65 + idx)}
-                                    </div>
-                                    <span className="font-medium">{option}</span>
-                                </div>
+                    {/* Chart container - Takes remaining space */}
+                    <div className="flex-1 relative">
+                        <div className="absolute inset-0 flex items-end justify-center pb-8">
+                            <div className="w-full max-w-3xl h-full flex items-end justify-center gap-4">
+                                {
+                                    currentQ?.options?.map((option, idx) => (
+                                        <div key={idx} className="flex flex-col items-center h-full justify-end flex-1 max-w-[200px]">
+                                            <div className="flex items-center gap-x-1 sm:gap-x-2 mb-2 whitespace-nowrap justify-center">
+                                                <div className="flex-shrink-0">
+                                                    {currentQ.correctAnswer === idx ? (
+                                                        <IoIosCheckmark size={16} className="sm:w-[18px] sm:h-[18px] text-green-600 bg-green-200 rounded-full border-[0.5px] border-green-500" />
+                                                    ) : (
+                                                        <RxCross2 className="bg-red-300 rounded-full p-1 text-red-950 w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                                                    )}
+                                                </div>
+                                                <span className="text-sm sm:text-base lg:text-lg font-medium">{Math.round(votes[idx])}</span>
+                                            </div>
+                                            <div
+                                                className={`w-full rounded-tr-xl transition-all duration-1000 ease-in-out ${currentQ.correctAnswer === idx ? 'bg-green-400' : 'bg-red-400'}`}
+                                                style={{
+                                                    height: `${Math.max(votes[idx] * 2.5, 12)}px`,
+                                                    minWidth: '60px',
+                                                    maxWidth: '180px'
+                                                }}
+                                            />
+
+                                            {/* Option label at the bottom - Fixed height */}
+                                            <div className="mt-2 h-8 flex items-center justify-center">
+                                                <div className="text-xs sm:text-sm text-neutral-950 text-center px-1 leading-tight font-light">
+                                                    {option.length > 12 ? `${option.substring(0, 12)}...` : option}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                }
                             </div>
-                        ))}
-                    </div>
-
-                    {/* Timer Visualization */}
-                    <div className="mt-8 flex justify-center">
-                        <div className="flex items-center gap-2 text-gray-500">
-                            <Clock className="w-4 h-4" />
-                            <div className="text-sm">Time: {currentQ?.timing || quizData.timing} seconds</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    );
 
-    return (
-        <div className="w-[70%] h-full overflow-hidden">
-            <div className="h-full overflow-y-auto shadow-lg">
-                <PreviewPanel />
+                <div className="my-6 lg:mt-8 flex justify-center">
+                    <div className="flex items-center gap-2 text-neutral-950">
+                        <Clock className="w-4 h-4" />
+                        <div className="text-sm">Time: {currentQ?.timing || quizData.timing} seconds</div>
+                    </div>
+                </div>
             </div>
         </div>
     );

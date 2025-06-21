@@ -1,16 +1,9 @@
-import { Dispatch, SetStateAction, useState } from "react";
-import UtilitySideBar from "../ui/UtilitySideBar";
 import { ChevronLeft, ChevronRight, Edit3, Play } from "lucide-react";
 import { useQuizCreationStepsStore } from "@/zustand/quizCreationStep";
 import { templates } from "./Panels";
-import { useQuizDataStore } from "@/zustand/quizStore";
+import { useCurrentQuestionStore, useQuizDataStore } from "@/zustand/quizStore";
 
-interface RightPanelProps {
-    openRightPanel: boolean;
-    setOpenRightPanel: Dispatch<SetStateAction<boolean>>;
-}
-
-export default function RightPanel({ openRightPanel, setOpenRightPanel }: RightPanelProps) {
+export default function RightPanel() {
     const { currentStep, setCurrentStep } = useQuizCreationStepsStore();
     const {
         quizData,
@@ -20,13 +13,13 @@ export default function RightPanel({ openRightPanel, setOpenRightPanel }: RightP
         addQuestion
     } = useQuizDataStore();
 
-    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const { currentQuestion, setCurrentQuestion } = useCurrentQuestionStore();
     const currentQ = quizData.questions[currentQuestion];
 
     return (
-        <div className="min-h-screen flex flex-col bg-neutral-100 flex-1 rounded-l-xl overflow-hidden py-4">
+        <div className="min-h-screen flex flex-col bg-neutral-100 flex-1 rounded-l-xl overflow-hidden py-4 border-l-[1px] border-neutral-300">
             {/* Form Header */}
-            <div className="border-b px-4 py-2">
+            <div className="border-b-[1px] border-neutral-300 px-4 py-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Edit3 className="w-5 h-5 text-blue-600" />
@@ -41,7 +34,7 @@ export default function RightPanel({ openRightPanel, setOpenRightPanel }: RightP
             </div>
 
             {/* Step Navigation */}
-            <div className="bg-white border-b p-4">
+            <div className="bg-neutral-100 p-4">
                 <div className="flex items-center gap-4">
                     <button
                         type='button'
@@ -95,7 +88,11 @@ export default function RightPanel({ openRightPanel, setOpenRightPanel }: RightP
                                             : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
-                                        <div className={`w-full h-12 ${template.bg} rounded mb-2`} />
+                                        <div className={`w-full h-12 rounded mb-2`} 
+                                            style={{
+                                                backgroundColor: template.bg
+                                            }}
+                                        />
                                         <div className="text-sm font-medium text-gray-800">
                                             {template.name}
                                         </div>

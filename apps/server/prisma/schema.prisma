@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  email       String        @unique()
+  image       String?
+  provider    String
+  createdAt   DateTime      @default(now())
+  Quiz        Quiz[]
+  LiveSession LiveSession[]
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  template    Template @default(CLASSIC)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  defaultTimeLimit   Int     @default(30)
+  shuffleQuestions   Boolean @default(false)
+  shuffleOptions     Boolean @default(false)
+  showCorrectAnswers Boolean @default(true)
+
+  creator_id  String        @db.Uuid
+  creator     User          @relation(fields: [creator_id], references: [id])
+  questions   Question[]
+  LiveSession LiveSession[]
+}
+
+model Question {
+  id            String       @id @default(cuid())
+  title         String
+  type          QuestionType @default(MULTIPLE_CHOICE)
+  points        Int
+  options       String[]
+  correctAnswer Int?
+
+  // True/False specific
+  correctBoolean Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quiz_id          String
+  quiz             Quiz               @relation(fields: [quiz_id], references: [id])
+  QuestionResponse QuestionResponse[]
+
+  @@map("questions")
+}
+
+model LiveSession {
+  id                   String        @id @default(cuid())
+  sessionCode          String        @unique // 6-digit join code
+  status               SessionStatus @default(WAITING)
+  currentQuestionId    String?
+  currentQuestionIndex Int           @default(0)
+
+  // Settings for this session
+  showLeaderboard Boolean @default(true)
+  allowLateJoin   Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  // Relations
+  quizId       String
+  quiz         Quiz               @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  hostId       String             @db.Uuid
+  host         User               @relation(fields: [hostId], references: [id])
+  participants Participant[]
+  responses    QuestionResponse[]
+
+  @@map("live_sessions")
+}
+
+model Participant {
+  id       String    @id @default(cuid())
+  name     String
+  avatar   String? // Optional avatar selection
+  isActive Boolean   @default(true)
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  // Score tracking
+  totalScore     Int @default(0)
+  correctCount   Int @default(0)
+  incorrectCount Int @default(0)
+
+  // Relations
+  sessionId String
+  session   LiveSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  responses QuestionResponse[]
+
+  @@unique([sessionId, name]) // Unique name per session
+  @@map("participants")
+}
+
+model QuestionResponse {
+  id          String   @id @default(cuid())
+  answer      String // Stores the actual answer (option index, text, boolean)
+  isCorrect   Boolean
+  timeSpent   Int // Milliseconds taken to respond
+  points      Int      @default(0)
+  respondedAt DateTime @default(now())
+
+  // Relations
+  sessionId     String
+  session       LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, participantId, questionId]) // One response per participant per question
+  @@map("question_responses")
+}
+
+enum Template {
+  CLASSIC
+  MODERN
+  VIBRANT
+  MINIMAL
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+enum SessionStatus {
+  WAITING // Waiting for participants to join
+  STARTING // Countdown before first question
+  IN_PROGRESS // Quiz is active
+  PAUSED // Temporarily paused
+  FINISHED // Quiz completed
+  CANCELLED // Session cancelled
+}

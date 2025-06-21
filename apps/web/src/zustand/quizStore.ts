@@ -27,28 +27,25 @@ interface QuizDataStore {
 
 export const useQuizDataStore = create<QuizDataStore>((set) => ({
     quizData: {
-        title: 'Untitled Quiz',
-        template: 'classic',
-        timing: 30,
+        title: 'Advanced JavaScript & React Challenge',
+        template: 'modern',
+        timing: 45,
         totalQuestions: 1,
         questions: [
             {
                 id: 1,
-                question: '',
-                options: ['', '', '', ''],
-                correctAnswer: 0,
-                timing: 30
-            }
+                question: 'What will be the output of this JavaScript code?\n\nconsole.log(typeof typeof 1);',
+                options: ['number', 'string', 'undefined', 'object'],
+                correctAnswer: 1,
+                timing: 45
+            },
         ]
     },
-
     setQuizData: (data) => set({ quizData: data }),
-
     updateQuizField: (field, value) =>
         set((state) => ({
             quizData: { ...state.quizData, [field]: value }
         })),
-
     updateQuestionField: (index, field, value) =>
         set((state) => {
             const updatedQuestions = [...state.quizData.questions]
@@ -63,7 +60,6 @@ export const useQuizDataStore = create<QuizDataStore>((set) => ({
                 }
             }
         }),
-
     updateOption: (questionIndex, optionIndex, value) =>
         set((state) => {
             const updatedQuestions = [...state.quizData.questions]
@@ -80,15 +76,14 @@ export const useQuizDataStore = create<QuizDataStore>((set) => ({
                 }
             }
         }),
-
     addQuestion: () =>
         set((state) => {
             const newQuestion: QuizQuestion = {
                 id: state.quizData.questions.length + 1,
-                question: 'Your question goes here...',
-                options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                correctAnswer: 0,
-                timing: 30
+                question: 'What is the time complexity of searching in a balanced binary search tree?',
+                options: ['O(1)', 'O(log n)', 'O(n)', 'O(n²)'],
+                correctAnswer: 1,
+                timing: 40
             }
             const updatedQuestions = [...state.quizData.questions, newQuestion]
             return {
@@ -99,4 +94,14 @@ export const useQuizDataStore = create<QuizDataStore>((set) => ({
                 }
             }
         })
+}))
+
+interface CurrentQuestionType {
+    currentQuestion: number;
+    setCurrentQuestion: (data: number) => void
+}
+
+export const useCurrentQuestionStore = create<CurrentQuestionType>((set) => ({
+    currentQuestion: 0,
+    setCurrentQuestion: (data: number) => set({ currentQuestion: data })
 }))

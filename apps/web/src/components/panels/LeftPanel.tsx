@@ -58,7 +58,7 @@ export default function LeftPanel() {
                             Question {currentQuestion + 1}
                         </div>
                         <div className="h-20 sm:h-24 lg:h-28 flex items-center justify-center">
-                            <h2 className="text-xl sm:text-2xl lg:text-3xl text-neutral-950 leading-relaxed text-center px-2 max-w-[40rem] overflow-hidden">
+                            <h2 className="text-xl sm:text-2xl lg:text-3xl text-neutral-950 leading-relaxed text-center px-2 max-w-[40rem] overflow-hidden font-light tracking-wide">
                                 {currentQ?.question}
                             </h2>
                         </div>
@@ -71,7 +71,7 @@ export default function LeftPanel() {
                                 {
                                     currentQ?.options?.map((option, idx) => (
                                         <div key={idx} className="flex flex-col items-center h-full justify-end flex-1 max-w-[200px]">
-                                            <div className="flex items-center gap-x-1 sm:gap-x-2 mb-2 whitespace-nowrap justify-center">
+                                            <div className="flex items-center justify-start gap-x-1 sm:gap-x-2 mb-2 whitespace-nowrap w-full">
                                                 <div className="flex-shrink-0">
                                                     {currentQ.correctAnswer === idx ? (
                                                         <IoIosCheckmark size={16} className="sm:w-[18px] sm:h-[18px] text-green-600 bg-green-200 rounded-full border-[0.5px] border-green-500" />

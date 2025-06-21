@@ -16,7 +16,7 @@ export default function UtilityCard({ children, className, ref }: UtilityCardPro
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             ref={ref}
-            className={cn("dark:text-gray-200 rounded-[10px] z-40 border-[1px] border-neutral-300 px-8 py-4 shadow-md",
+            className={cn("",
                 className
             )}
             onClick={(e) => e.stopPropagation()}

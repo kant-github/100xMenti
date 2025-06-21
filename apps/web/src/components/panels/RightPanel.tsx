@@ -1,7 +1,10 @@
-import { ChevronLeft, ChevronRight, Edit3, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Cross, Edit3, Play, Plus } from "lucide-react";
 import { useQuizCreationStepsStore } from "@/zustand/quizCreationStep";
 import { templates } from "./Panels";
 import { useCurrentQuestionStore, useQuizDataStore } from "@/zustand/quizStore";
+import { Button } from "../ui/button";
+import UtilityCard from "../ui/UtilityCard";
+import { RxCross1, RxCross2 } from "react-icons/rx";
 
 export default function RightPanel() {
     const { currentStep, setCurrentStep } = useQuizCreationStepsStore();
@@ -22,13 +25,13 @@ export default function RightPanel() {
             <div className="border-b-[1px] border-neutral-300 px-4 py-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Edit3 className="w-5 h-5 text-blue-600" />
+                        <Edit3 className="w-5 h-5 text-neutral-900" />
                         <span className="font-medium">Quiz Editor</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button type='button' className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        <Button className="min-w-[120px] px-6 py-5 bg-neutral-900 text-white hover:bg-neutral-800 transition rounded-xl">
                             Save Draft
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -36,22 +39,20 @@ export default function RightPanel() {
             {/* Step Navigation */}
             <div className="bg-neutral-100 p-4">
                 <div className="flex items-center gap-4">
-                    <button
+                    <Button
                         type='button'
                         onClick={() => setCurrentStep(1)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentStep === 1 ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
-                            }`}
+                        variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs"
                     >
                         Setup
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
                         onClick={() => setCurrentStep(2)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentStep === 2 ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
-                            }`}
+                        variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs"
                     >
                         Questions
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -59,7 +60,7 @@ export default function RightPanel() {
             <div className="flex-1 overflow-y-auto p-6">
                 {currentStep === 1 ? (
                     // Setup Form
-                    <div className="space-y-6">
+                    <UtilityCard className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Quiz Title
@@ -88,7 +89,7 @@ export default function RightPanel() {
                                             : 'border-gray-200 hover:border-gray-300'
                                             }`}
                                     >
-                                        <div className={`w-full h-12 rounded mb-2`} 
+                                        <div className={`w-full h-12 rounded mb-2`}
                                             style={{
                                                 backgroundColor: template.bg
                                             }}
@@ -125,10 +126,10 @@ export default function RightPanel() {
                             Continue to Questions
                             <ChevronRight className="w-4 h-4" />
                         </button>
-                    </div>
+                    </UtilityCard>
                 ) : (
                     // Questions Form
-                    <div className="space-y-6">
+                    <div className="space-y-6 bg-neutral-100 p-4 rounded-xl">
                         {/* Question Navigation */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -154,13 +155,10 @@ export default function RightPanel() {
                                     <ChevronRight className="w-4 h-4" />
                                 </button>
                             </div>
-                            <button
-                                type="button"
-                                onClick={addQuestion}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                            >
-                                + Add Question
-                            </button>
+                            <Button onClick={addQuestion} variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-300  transition rounded-xl flex items-center justify-center gap-x-2 text-xs">
+                                <Plus />
+                                Add Question
+                            </Button>
                         </div>
 
                         {/* Question Form */}
@@ -171,7 +169,7 @@ export default function RightPanel() {
                             <textarea
                                 value={currentQ?.question || ''}
                                 onChange={(e) => updateQuestionField(currentQuestion, 'question', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none bg-neutral-200 text-sm font-light"
                                 rows={3}
                                 placeholder="Type your question here..."
                                 key={`question-${currentQuestion}`}
@@ -185,30 +183,31 @@ export default function RightPanel() {
                             </label>
                             <div className="space-y-3">
                                 {currentQ?.options.map((option, idx) => (
-                                    <div key={idx} className="flex items-center gap-3">
+                                    <div key={idx} className="flex items-center gap-3 w-[80%]">
                                         <input
                                             aria-label='s'
                                             type="radio"
                                             name={`correctAnswer-${currentQuestion}`}
                                             checked={currentQ.correctAnswer === idx}
                                             onChange={() => updateQuestionField(currentQuestion, 'correctAnswer', idx)}
-                                            className="text-blue-600 focus:ring-blue-500"
+                                            className="appearance-none w-[22px] h-[22px] border-2 border-gray-300 rounded-sm bg-white checked:bg-violet-500 checked:border-violet-600 outline-none focus:outline-none ring-0 focus:ring-0 focus:ring-offset-2 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-xs checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:w-full checked:after:h-full checked:after:flex checked:after:items-center checked:after:justify-center"
                                         />
                                         <div className="flex-1">
                                             <input
                                                 type="text"
                                                 value={option}
                                                 onChange={(e) => updateOption(currentQuestion, idx, e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-neutral-200 text-sm font-light"
                                                 placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                                                 key={`option-${currentQuestion}-${idx}`}
                                             />
                                         </div>
+                                        <RxCross2 size={14} />
                                     </div>
                                 ))}
                             </div>
                             <div className="text-xs text-gray-500 mt-2">
-                                Select the radio button next to the correct answer
+                                Select the checkbox next to the correct answer
                             </div>
                         </div>
 
@@ -224,7 +223,7 @@ export default function RightPanel() {
                                 max="300"
                                 value={currentQ?.timing || quizData.timing}
                                 onChange={(e) => updateQuestionField(currentQuestion, 'timing', parseInt(e.target.value))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-200 text-sm font-light"
                             />
                         </div>
 

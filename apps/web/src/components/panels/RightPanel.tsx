@@ -1,20 +1,76 @@
-import { ChevronLeft, ChevronRight, Edit3, Play, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit3, Loader2, Play, Plus } from "lucide-react";
 import { useQuizCreationStepsStore } from "@/zustand/quizCreationStep";
-import { templates } from "./Panels";
 import { useCurrentQuestionStore, useQuizDataStore } from "@/zustand/quizStore";
 import { Button } from "../ui/button";
 import UtilityCard from "../ui/UtilityCard";
 import { RxCross2 } from "react-icons/rx";
+import templates from "@/lib/templates";
+import { useSessionStore } from "@/zustand/sessionZustand";
+import axios from "axios";
+import { CREATE_QUIZ_URL } from "@/lib/api_routes";
+import { useNewQuizIdStore } from "@/zustand/newQuizIdStore";
+import { useState } from "react";
+
 
 export default function RightPanel() {
+    const [loading, setLoading] = useState<boolean>(false);
     const { currentStep, setCurrentStep } = useQuizCreationStepsStore();
+    const { session } = useSessionStore();
+    const { newQuizId } = useNewQuizIdStore()
     const {
         quizData,
+        setQuizData,
         updateQuizField,
         updateQuestionField,
         updateOption,
         addQuestion
     } = useQuizDataStore();
+
+    async function createQuizHandler() {
+        if (!session) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await new Promise(t => setTimeout(t, 3000));
+            const { data } = await axios.post(`${CREATE_QUIZ_URL}`, { ...quizData, newQuizId }, {
+                headers: {
+                    Authorization: `Bearer ${session.user.token}`
+                }
+            })
+            const {
+                title,
+                template,
+                createdAt,
+                updatedAt,
+                isUpdated,
+                defaultTimeLimit,
+                questions
+            } = data.data;
+
+            setQuizData({
+                title: title,
+                template: template,
+                timing: defaultTimeLimit,
+                totalQuestions: questions.length,
+                createdAt,
+                updatedAt,
+                isUpdated,
+                questions: questions.map(q => ({
+                    id: q.id,
+                    question: q.title,
+                    options: q.options,
+                    correctAnswer: q.correctAnswer,
+                    timing: q.timing
+                }))
+            })
+        } catch (err) {
+            console.log("Error while creating a quiz", err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const { currentQuestion, setCurrentQuestion } = useCurrentQuestionStore();
     const currentQ = quizData.questions[currentQuestion];
@@ -29,9 +85,23 @@ export default function RightPanel() {
                         <span className="font-medium">Quiz Editor</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button className="min-w-[120px] px-6 py-5 bg-neutral-900 text-white hover:bg-neutral-800 transition rounded-xl">
-                            Save Draft
+                        <Button
+                            onClick={createQuizHandler}
+                            className="min-w-[120px] px-6 py-5 bg-neutral-900 text-white hover:bg-neutral-800 transition rounded-xl  disabled:bg-neutral-900 disabled:text-white disabled:opacity-100 disabled:cursor-default"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Drafting...
+                                </>
+                            ) : quizData.isUpdated ? (
+                                'Update Draft'
+                            ) : (
+                                'Save Draft'
+                            )}
                         </Button>
+
                     </div>
                 </div>
             </div>
@@ -42,14 +112,14 @@ export default function RightPanel() {
                     <Button
                         type='button'
                         onClick={() => setCurrentStep(1)}
-                        variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs"
+                        variant="outline" className={`min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs ${currentStep === 1 && 'border border-blue-400'} `}
                     >
                         Setup
                     </Button>
                     <Button
                         type='button'
                         onClick={() => setCurrentStep(2)}
-                        variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs"
+                        variant="outline" className={`min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs ${currentStep === 2 && 'border border-blue-400'} `}
                     >
                         Questions
                     </Button>

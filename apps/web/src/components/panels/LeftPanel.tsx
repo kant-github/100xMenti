@@ -1,29 +1,27 @@
 import { RxCross2 } from "react-icons/rx";
-import { templates } from './Panels';
 import { useCurrentQuestionStore, useQuizDataStore } from '@/zustand/quizStore';
 import { IoIosCheckmark } from "react-icons/io";
 import { BookOpen, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
+import templates from "@/lib/templates";
+import { useSessionStore } from "@/zustand/sessionZustand";
 
 export default function LeftPanel() {
-
     const { quizData } = useQuizDataStore();
     const { currentQuestion } = useCurrentQuestionStore();
     const currentQ = quizData.questions[currentQuestion];
     const selectedTemplate = templates.find(t => t.id === quizData.template);
-
+    const { session } = useSessionStore();
     const [votes, setVotes] = useState([0, 0, 0, 0]);
 
     useEffect(() => {
-        // Generate new target values every 1 second
         const interval = setInterval(() => {
             setVotes(prev => {
                 return prev.map(() => {
-                    // Generate completely new random values between 10-90
                     return Math.floor(Math.random() * 80) + 10;
                 });
             });
-        }, 2000); // Update every 1 second
+        }, 2000);
 
         return () => clearInterval(interval);
     }, [currentQuestion]);

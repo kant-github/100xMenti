@@ -7,6 +7,7 @@ import LoginModal from "../ui/LoginModal";
 import JoinQuizModal from "../ui/JoinQuizModal";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 
 
@@ -20,6 +21,7 @@ export default function NavBar() {
         router.push(`/new/${uuid}`);
     }
 
+    console.log(session);
     return (
         <div className="w-full h-20 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-between px-12">
             <AppLogo />
@@ -37,6 +39,13 @@ export default function NavBar() {
                         Login
                     </Button>
                 )}
+                {session && session.user && <Image
+                    src={session.user.image}
+                    width={30}
+                    height={30}
+                    alt="user-image"
+                    className="rounded-full"
+                />}
             </div>
             {openLoginModal && (<LoginModal setOpenLoginModal={setOpenLoginModal} />)}
             {openQuizModal && (<JoinQuizModal setOpenJoinQuizModal={setOpenJoinQuizModal} />)}

@@ -3,7 +3,7 @@ import http from 'http';
 import path from 'path';
 import dotenv from 'dotenv';
 import router from './router';
-
+import cors from 'cors';
 dotenv.config({
     path: path.resolve(__dirname, '../.env'),
 });
@@ -11,6 +11,9 @@ dotenv.config({
 const PORT = process.env.PORT;
 console.log(PORT);
 const app = express();
+app.use(cors({
+    origin: '*'
+}))
 const server = http.createServer(app);
 
 app.use(express.json());

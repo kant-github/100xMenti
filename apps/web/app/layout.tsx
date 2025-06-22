@@ -1,30 +1,20 @@
 'use client'
-import localFont from "next/font/local";
 
+import { useSession } from "next-auth/react";
 import "./globals.css";
 import SessionProvider from "@/providers/SessionProvider";
-
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-});
-
+import { useSessionStore } from "@/zustand/sessionZustand";
+import { useEffect, useMemo } from "react";
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
 
   return (
     <html suppressHydrationWarning={true} lang="en">
       <SessionProvider>
-        <body className={`${geistSans.variable} ${geistMono.variable} bg-neutral-100 dark:bg-neutral-900`}>
+        <body className={`bg-neutral-100 dark:bg-neutral-900`}>
           {children}
         </body>
       </SessionProvider>

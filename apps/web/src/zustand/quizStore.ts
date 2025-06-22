@@ -13,6 +13,9 @@ export interface QuizData {
     template: string
     timing: number
     totalQuestions: number
+    createdAt: Date
+    updatedAt: Date
+    isUpdated: boolean
     questions: QuizQuestion[]
 }
 
@@ -28,9 +31,12 @@ interface QuizDataStore {
 export const useQuizDataStore = create<QuizDataStore>((set) => ({
     quizData: {
         title: 'Advanced JavaScript & React Challenge',
-        template: 'modern',
+        template: 'MODERN',
         timing: 45,
         totalQuestions: 1,
+        createdAt: null,
+        updatedAt: null,
+        isUpdated: false,
         questions: [
             {
                 id: 1,

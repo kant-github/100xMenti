@@ -32,6 +32,7 @@ model Quiz {
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  isUpdated   Boolean
 
   defaultTimeLimit   Int     @default(30)
   shuffleQuestions   Boolean @default(false)
@@ -51,6 +52,7 @@ model Question {
   points        Int
   options       String[]
   correctAnswer Int?
+  timing        Int
 
   // True/False specific
   correctBoolean Boolean?
@@ -59,7 +61,7 @@ model Question {
   updatedAt DateTime @updatedAt
 
   quiz_id          String
-  quiz             Quiz               @relation(fields: [quiz_id], references: [id])
+  quiz             Quiz               @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
   QuestionResponse QuestionResponse[]
 
   @@map("questions")
@@ -85,7 +87,7 @@ model LiveSession {
   quizId       String
   quiz         Quiz               @relation(fields: [quizId], references: [id], onDelete: Cascade)
   hostId       String             @db.Uuid
-  host         User               @relation(fields: [hostId], references: [id])
+  host         User               @relation(fields: [hostId], references: [id], onDelete: Cascade)
   participants Participant[]
   responses    QuestionResponse[]
 
@@ -137,8 +139,10 @@ model QuestionResponse {
 enum Template {
   CLASSIC
   MODERN
-  VIBRANT
-  MINIMAL
+  PASTEL
+  NEON
+  YELLOW
+  GREEN
 }
 
 enum QuestionType {

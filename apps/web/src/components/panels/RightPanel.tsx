@@ -1,10 +1,10 @@
-import { ChevronLeft, ChevronRight, Cross, Edit3, Play, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit3, Play, Plus } from "lucide-react";
 import { useQuizCreationStepsStore } from "@/zustand/quizCreationStep";
 import { templates } from "./Panels";
 import { useCurrentQuestionStore, useQuizDataStore } from "@/zustand/quizStore";
 import { Button } from "../ui/button";
 import UtilityCard from "../ui/UtilityCard";
-import { RxCross1, RxCross2 } from "react-icons/rx";
+import { RxCross2 } from "react-icons/rx";
 
 export default function RightPanel() {
     const { currentStep, setCurrentStep } = useQuizCreationStepsStore();
@@ -69,7 +69,7 @@ export default function RightPanel() {
                                 type="text"
                                 value={quizData.title}
                                 onChange={(e) => updateQuizField('title', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none bg-neutral-200 text-sm font-light"
                                 placeholder="Enter quiz title..."
                                 key="quiz-title"
                             />
@@ -94,7 +94,7 @@ export default function RightPanel() {
                                                 backgroundColor: template.bg
                                             }}
                                         />
-                                        <div className="text-sm font-medium text-gray-800">
+                                        <div className="text-xs font-medium text-neutral-950">
                                             {template.name}
                                         </div>
                                     </div>
@@ -181,7 +181,7 @@ export default function RightPanel() {
                             <label className="block text-sm font-medium text-gray-700 mb-3">
                                 Answer Options
                             </label>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 {currentQ?.options.map((option, idx) => (
                                     <div key={idx} className="flex items-center gap-3 w-[80%]">
                                         <input
@@ -190,14 +190,14 @@ export default function RightPanel() {
                                             name={`correctAnswer-${currentQuestion}`}
                                             checked={currentQ.correctAnswer === idx}
                                             onChange={() => updateQuestionField(currentQuestion, 'correctAnswer', idx)}
-                                            className="appearance-none w-[22px] h-[22px] border-2 border-gray-300 rounded-sm bg-white checked:bg-violet-500 checked:border-violet-600 outline-none focus:outline-none ring-0 focus:ring-0 focus:ring-offset-2 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-xs checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:w-full checked:after:h-full checked:after:flex checked:after:items-center checked:after:justify-center"
+                                            className="appearance-none w-[22px] h-[22px] border border-neutral-300 rounded-sm bg-white checked:bg-violet-500 checked:border-violet-600 outline-none focus:outline-none ring-0 focus:ring-0 focus:ring-offset-2 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-xs checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:w-full checked:after:h-full checked:after:flex checked:after:items-center checked:after:justify-center"
                                         />
                                         <div className="flex-1">
                                             <input
                                                 type="text"
                                                 value={option}
                                                 onChange={(e) => updateOption(currentQuestion, idx, e.target.value)}
-                                                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-neutral-200 text-sm font-light"
+                                                className="w-full px-3 py-2 rounded-lg focus:ring-0 focus:border-transparent bg-neutral-200 text-sm font-light outline-none"
                                                 placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                                                 key={`option-${currentQuestion}-${idx}`}
                                             />

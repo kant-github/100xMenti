@@ -1,24 +1,54 @@
-import { useState } from "react";
 import RightPanel from "./RightPanel";
 import LeftPanel from "./LeftPanel";
-import { useQuizDataStore } from "@/zustand/quizStore";
 
 export const templates = [
-    { id: 'classic', name: 'Classic Blue', bg: '#2563EB', accent: '#9bc1ff' },
-    { id: 'modern', name: 'Modern Purple', bg: '#7C3AED', accent: '#d1beff' }, // bg-purple-600, purple-500
-    { id: 'vibrant', name: 'Vibrant Orange', bg: '#F97316', accent: '#fcd5b4' }, // orange-500, orange-400
-    { id: 'minimal', name: 'Minimal Gray', bg: '#30353c', accent: '#484c53' }  // gray-700, gray-600
+  {
+    id: 'classic',
+    name: 'Deep Blue Classic',
+    bg: '#2563EB',
+    bars: ['#2A1458', '#FFC107', '#B22222', '#06D001'],
+  },
+  {
+    id: 'modern',
+    name: 'Electric Modern',
+    bg: '#7C3AED',
+    accent: '#d1beff',
+    bars: ['#640D5F', '#D91656', '#EB5B00', '#FFB200'],
+  },
+  {
+    id: 'pastel',
+    name: 'Pastel Dream',
+    bg: '#CD5656',
+    accent: '#fcd5b4',
+    bars: ['#819A91', '#687FE5', '#F7CFD8', '#FED7AA'],
+  },
+  {
+    id: 'neon',
+    name: 'Neon Night',
+    bg: '#30353c',
+    accent: '#484c53',
+    bars: ['#CF0F47', '#344CB7', '#007F73', '#FFAF00'],
+  },
+  {
+    id: 'yellow',
+    name: 'Yellow Mellow',
+    bg: '#FFDB00',
+    accent: '#AF47D2',
+    bars: ['#007F73', '#344CB7', '#AF47D2', '#CF0F47'],
+  },
+  {
+    id: 'green',
+    name: 'Jungle Green',
+    bg: '#06923E',
+    accent: '#fcd5b4',
+    bars: ['#D91656', '#143D60', '#FFC700', '#FC4100'],
+  },
 ];
 
 
 export default function Panels() {
-    const [sideBar, setSideBar] = useState<boolean>(true);
-    const { quizData } = useQuizDataStore()
-    const selectedTemplate = templates.find(t => t.id === quizData.template);
     return (
-        <div
-            className="flex h-screen w-full overflow-hidden bg-neutral-200"
-        >
+        <div className="flex h-screen w-full overflow-hidden bg-neutral-200">
             <LeftPanel />
             <RightPanel />
         </div>

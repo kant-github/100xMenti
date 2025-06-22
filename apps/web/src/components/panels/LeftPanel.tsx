@@ -23,7 +23,7 @@ export default function LeftPanel() {
                     return Math.floor(Math.random() * 80) + 10;
                 });
             });
-        }, 1000); // Update every 1 second
+        }, 2000); // Update every 1 second
 
         return () => clearInterval(interval);
     }, [currentQuestion]);
@@ -47,7 +47,7 @@ export default function LeftPanel() {
                 </div>
 
                 {/* FIXED CONTAINER - Now has consistent dimensions */}
-                <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-md flex flex-col"
+                <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-lg flex flex-col"
                     style={{
                         backgroundColor: selectedTemplate.bg
                     }}
@@ -82,11 +82,12 @@ export default function LeftPanel() {
                                                 <span className="text-sm sm:text-base lg:text-lg font-medium">{Math.round(votes[idx])}</span>
                                             </div>
                                             <div
-                                                className={`w-full rounded-tr-xl transition-all duration-1000 ease-in-out ${currentQ.correctAnswer === idx ? 'bg-green-400' : 'bg-red-400'}`}
+                                                className={`w-full rounded-tr-xl transition-all duration-1000 ease-in-out`}
                                                 style={{
                                                     height: `${Math.max(votes[idx] * 2.5, 12)}px`,
                                                     minWidth: '60px',
-                                                    maxWidth: '180px'
+                                                    maxWidth: '180px',
+                                                    backgroundColor: selectedTemplate.bars[idx]
                                                 }}
                                             />
 

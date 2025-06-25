@@ -25,11 +25,6 @@ export interface QuizRoom {
     currentQuestionId: string | null;
     status: 'WAITING' | 'STARTING' | 'IN_PROGRESS' | 'PAUSED' | 'FINISHED' | 'CANCELLED';
     questionStartTime: number | null;
-    settings: {
-        showLeaderboard: boolean;
-        allowLateJoin: boolean;
-        timeLimit: number;
-    };
 }
 
 export interface ParticipantData {

@@ -34,7 +34,6 @@ export default function ProfileModal({ open, setOpen }: ProfileModalProps) {
             icon: FileText,
             label: "Drafted Quizzes",
             onClick: () => {
-                // Handle drafted quizzes navigation
                 console.log("Navigate to drafted quizzes");
                 setOpen(false);
             }

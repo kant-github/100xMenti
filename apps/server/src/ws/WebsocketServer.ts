@@ -1,9 +1,9 @@
 import { Server } from "http";
 import { Server as WSServer, WebSocket } from "ws";
 import { v4 as uuid } from "uuid";
-import { CustomWebSocket, MESSAGE_TYPES, QuizRoom } from "../types/WebSocketTypes";
+import { CustomWebSocket, MESSAGE_TYPES, ParticipantData, QuizRoom } from "../types/WebSocketTypes";
 import { prisma } from "../lib/prisma";
-
+import jwt from 'jsonwebtoken';
 
 
 export default class WebSocketServer {
@@ -20,7 +20,10 @@ export default class WebSocketServer {
 
     private initialize() {
         this.wss.on('connection', (ws: CustomWebSocket, url) => {
-            const roomId = '';
+            if (!this.authenticateConnection(ws, url)) {
+                return;
+            }
+
             const newWebSocketId = uuid()
 
             ws.id = newWebSocketId;
@@ -43,18 +46,18 @@ export default class WebSocketServer {
         switch (type) {
             case MESSAGE_TYPES.JOIN_QUIZ:
                 this.handleJoinQuiz(ws, payload);
-                return;
+                break;
             case MESSAGE_TYPES.LEAVE_QUIZ:
                 this.handleLeaveQuiz()
-                return;
+                break;
         }
 
     }
 
     private handleJoinQuiz(ws: CustomWebSocket, payload: any) {
-        const { sessionCode, participantName, avatar, isHost, hostId, sessionId, quizId } = payload;
+        const { participantName, avatar, isHost, sessionId, quizId } = payload;
 
-        if (sessionCode) {
+        if (!sessionId) {
             this.sendError(ws, 'Session code is required');
             return;
         }
@@ -64,22 +67,34 @@ export default class WebSocketServer {
         }
 
         if (!participantName) {
-            this.sendError(ws, 'Add your name');
+            this.sendError(ws, 'Participant name is required');
             return;
         }
 
-        const room = this.quizMapping.get(sessionCode);
+        const room = this.quizMapping.get(sessionId);
 
         if (!room) {
-            this.sendError(ws, 'Room is not live');
+            this.sendError(ws, 'Room is not live or does not exist');
             return;
         }
 
-        this.addParticipantToRoom()
+        this.addParticipantToRoom(ws, room)
     }
 
-    private addParticipantToRoom() {
-
+    private async addParticipantToRoom(ws: CustomWebSocket, room: QuizRoom) {
+        const participant = await prisma.participant.findUnique({
+            where: { id: String(ws.user.id) }
+        });
+        if (!participant) {
+            this.sendToSocket(ws, 'Participant not found');
+            return;
+        }
+        const participantData: ParticipantData = {
+            ...participant,
+            socketId: ws.id
+        }
+        room.participants.set(participant.id, participantData);
+        this.joinRoom(ws, room.sessionId);
     }
 
     private handleLeaveQuiz() {
@@ -89,12 +104,21 @@ export default class WebSocketServer {
     private async handleCreateQuiz(ws: CustomWebSocket, payload: any) {
         const { quizId } = payload;
 
-
         const liveSession = await prisma.liveSession.findFirst({
             where: {
                 quizId: quizId
             }, include: { quiz: true, host: true }
         })
+
+        if (!liveSession) {
+            this.sendError(ws, 'Live session not found');
+            return;
+        }
+
+        if (liveSession.hostId !== String(ws.user.id)) {
+            this.sendError(ws, 'Unauthorized to host this quiz');
+            return;
+        }
 
         const quiz: QuizRoom = {
             sessionId: liveSession.id,
@@ -130,6 +154,33 @@ export default class WebSocketServer {
     private sendToSocket(ws: CustomWebSocket, message: any) {
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(message));
+        }
+    }
+
+    private authenticateConnection(ws: CustomWebSocket, request: any): boolean {
+        try {
+            const url = new URL(request.url, `http://${request.headers.host}`);
+            const token = url.searchParams.get('token');
+
+            if (!token) {
+                ws.close(1008, 'Authentication required - no token provided');
+                return false;
+            }
+
+            // Synchronous verification for immediate response
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthUser;
+                ws.user = decoded;
+                return true;
+            } catch (jwtError) {
+                console.error('JWT verification failed:', jwtError);
+                ws.close(1008, 'Invalid authentication token');
+                return false;
+            }
+        } catch (error) {
+            console.error('Authentication error:', error);
+            ws.close(1008, 'Authentication failed');
+            return false;
         }
     }
 }

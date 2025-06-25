@@ -7,6 +7,7 @@ export interface MessageType {
 
 export interface CustomWebSocket extends WebSocket {
     id: string;
+    user: AuthUser
 }
 
 export const MESSAGE_TYPES = {

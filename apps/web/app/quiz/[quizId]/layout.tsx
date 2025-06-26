@@ -11,10 +11,9 @@ export default function SessionWrapper({
 }) {
   const { data: sessionData } = useSession();
   const { setSession } = useSessionStore();
-
   useEffect(() => {
     if (sessionData) {
-      setSession(sessionData); // Assuming `sessionData` matches your Zustand type
+      setSession(sessionData);
     }
   }, [sessionData, setSession]);
 

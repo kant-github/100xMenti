@@ -50,6 +50,8 @@ export default class WebSocketServer {
             case MESSAGE_TYPES.LEAVE_QUIZ:
                 this.handleLeaveQuiz()
                 break;
+            default:
+                throw new Error('Unknown type came')
         }
 
     }
@@ -167,7 +169,6 @@ export default class WebSocketServer {
                 return false;
             }
 
-            // Synchronous verification for immediate response
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AuthUser;
                 ws.user = decoded;

@@ -8,7 +8,6 @@ import JoinQuizModal from "../ui/JoinQuizModal";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import UtilityCard from "../ui/UtilityCard";
 import ProfileModal from "../ui/ProfileModal";
 
 
@@ -17,7 +16,6 @@ export default function NavBar() {
     const { session } = useSessionStore();
     const [openLoginModal, setOpenLoginModal] = useState<boolean>(false);
     const [openQuizModal, setOpenJoinQuizModal] = useState<boolean>(false);
-    const [openProfileModal, setOpenProfileModal] = useState<boolean>(false);
 
     const router = useRouter()
     function createQuizHandler() {
@@ -43,24 +41,7 @@ export default function NavBar() {
                         Login
                     </Button>
                 )}
-                {session && session.user &&
-                    <div className="relative">
-                        <Image
-                            src={session.user.image}
-                            width={30}
-                            height={30}
-                            alt="user-image"
-                            className="rounded-full cursor-pointer"
-                            onClick={() => setOpenProfileModal(true)}
-                        />
-                        {openProfileModal && (
-                            <ProfileModal open={openProfileModal} setOpen={setOpenProfileModal} />
-                        )
-                        }
-                    </div>
-
-
-                }
+                <ProfileModal />
             </div>
             {openLoginModal && (<LoginModal setOpenLoginModal={setOpenLoginModal} />)}
             {openQuizModal && (<JoinQuizModal setOpenJoinQuizModal={setOpenJoinQuizModal} />)}

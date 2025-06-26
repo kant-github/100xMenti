@@ -6,11 +6,12 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import axios from "axios";
 import { GET_OWNER_QUIZS_URL } from "@/lib/api_routes";
+import QuizDashboard from "@/components/ui/QuizDashboard";
 
 export default function Home() {
   const { data: sessionData, status } = useSession();
   const { session, setSession } = useSessionStore();
-  const { setQuizs } = useOwnerQuizsStore();
+  const { setQuizs, resetQuizs } = useOwnerQuizsStore();
 
   async function getOwnerQuizs() {
     if (!session?.user?.token) {
@@ -25,7 +26,7 @@ export default function Home() {
       });
 
       if (data.data) {
-        console.log("data is  ", data.data);
+        resetQuizs();
         setQuizs(data.data);
       }
     } catch (err) {
@@ -40,8 +41,6 @@ export default function Home() {
   }, [sessionData, status, setSession]);
 
   useEffect(() => {
-    console.log("status is : ", status);
-
     if (session && session?.user?.token) {
       getOwnerQuizs();
     }
@@ -50,6 +49,7 @@ export default function Home() {
   return (
     <div className="bg-neutral-100 dark:bg-neutral-900 h-screen">
       <NavBar />
+      <QuizDashboard />
     </div>
   );
 }

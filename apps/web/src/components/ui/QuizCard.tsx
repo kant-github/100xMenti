@@ -1,5 +1,5 @@
 import { QuizType } from "@/types/types";
-import { Clock, FileText, Calendar, MoreVertical, Edit, Trash2, Play, Copy } from "lucide-react";
+import { Clock, FileText, Calendar, MoreVertical, Edit, Trash2, Play } from "lucide-react";
 import { useState } from "react";
 
 interface QuizCardProps {
@@ -145,6 +145,7 @@ export default function QuizCard({ quiz }: QuizCardProps) {
                     {/* Quick Actions */}
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
+                            type="button"
                             onClick={(e) => handleAction('edit', e)}
                             className="p-1 rounded hover:bg-blue-50 text-blue-600 transition-colors"
                             title="Edit quiz"
@@ -152,6 +153,7 @@ export default function QuizCard({ quiz }: QuizCardProps) {
                             <Edit className="w-3 h-3" />
                         </button>
                         <button
+                            type="button"
                             onClick={(e) => handleAction('preview', e)}
                             className="p-1 rounded hover:bg-green-50 text-green-600 transition-colors"
                             title="Preview quiz"

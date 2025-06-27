@@ -41,7 +41,7 @@ export default function DraftedQuizSidebar({ open, setOpen }: DraftedQuizSidebar
                         {quizs.length > 0 ? (
                             <div className="gap-y-4">
                                 {quizs.map((quiz) => (
-                                    <QuizCard session={session} key={quiz.id} quiz={quiz} />
+                                    <QuizCard setOpen={setOpen} session={session} key={quiz.id} quiz={quiz} />
                                 ))}
                             </div>
                         ) : (

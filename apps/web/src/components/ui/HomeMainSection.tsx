@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trophy, Users, Clock, BarChart3, Play, Edit3, Trash2, Eye } from 'lucide-react';
+import {  Trophy, Users, Clock, BarChart3, Play, Edit3, Trash2, Eye } from 'lucide-react';
 
 export default function HomeMainSection() {
     const [activeTab, setActiveTab] = useState('overview');
@@ -77,16 +77,16 @@ export default function HomeMainSection() {
                         Created {new Date(quiz.createdAt).toLocaleDateString()}
                     </span>
                     <div className="flex items-center gap-2">
-                        <button className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
+                        <button aria-label='eye' type='button' className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
                             <Eye className="w-4 h-4 text-neutral-400 group-hover/btn:text-blue-600" />
                         </button>
-                        <button className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
+                        <button aria-label='edit' type='button' className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
                             <Edit3 className="w-4 h-4 text-neutral-400 group-hover/btn:text-green-600" />
                         </button>
-                        <button className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
+                        <button aria-label='play' type='button' className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
                             <Play className="w-4 h-4 text-neutral-400 group-hover/btn:text-purple-600" />
                         </button>
-                        <button className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
+                        <button aria-label='trash' type='button' className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors group/btn">
                             <Trash2 className="w-4 h-4 text-neutral-400 group-hover/btn:text-red-600" />
                         </button>
                     </div>

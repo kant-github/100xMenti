@@ -1,19 +1,61 @@
 import { CustomSession, QuizType } from "@/types/types";
 import { Clock, FileText, Calendar, MoreVertical, Edit, Trash2, Play, Rocket } from "lucide-react";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import LaunchQuizModal from "./LaunchQuizModal";
 import axios from "axios";
-import { LAUNCH_QUIZ_URL } from "@/lib/api_routes";
+import { LAUNCH_QUIZ_URL, PUBLISH_QUIZ_URL } from "@/lib/api_routes";
+import { useRouter } from "next/navigation";
+import PublishQuizModal from "./PublishQuizModal";
+import { useOwnerQuizsStore } from "@/zustand/ownerQuizsStore";
+import { useToast } from "@/hooks/useToast";
 
 interface QuizCardProps {
     quiz: QuizType;
     session: CustomSession;
+    setOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function QuizCard({ quiz, session }: QuizCardProps) {
+export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [openLaunchQuizModal, setOpenLaunchQuizModal] = useState(false);
+    const [openPublishQuizModal, setOpenPublishQuizModal] = useState(false);
+    const router = useRouter();
+    const { toast } = useToast()
+    const [loading, setLoading] = useState<boolean>(false);
+    const { setQuizs } = useOwnerQuizsStore()
 
+    async function publishQuizHandler(quizId: string) {
+        if (!quizId || !session.user.token) {
+            console.log("returning");
+            return;
+        }
+        try {
+            setLoading(true);
+            const { data } = await axios.post(`${PUBLISH_QUIZ_URL}/${quizId}`, {}, {
+                headers: {
+                    Authorization: `Bearer ${session.user.token}`
+                }
+            })
+            if (data.success) {
+                setQuizs({
+                    ...quiz,
+                    isPublished: true
+                })
+            }
+            if (data.message) {
+                toast({
+                    title: data.message
+                })
+            }
+
+        } catch (err) {
+            console.log("Error in launching the quiz", err);
+        } finally {
+            setLoading(false);
+            setOpenPublishQuizModal(false);
+        }
+
+    }
 
     async function launchQuizHandler(quizId: string) {
         if (!quizId || !session.user.token) {
@@ -22,6 +64,7 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
         }
 
         try {
+            setLoading(true);
             const { data } = await axios.post(`${LAUNCH_QUIZ_URL}/${quizId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${session.user.token}`
@@ -30,10 +73,12 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
             console.log("data is : ", data);
         } catch (err) {
             console.log("Error in launching the quiz", err);
+        } finally {
+            setLoading(false);
         }
     }
 
-    const formatDate = (dateString: string) => {
+    function formatDate(dateString: string) {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
             month: 'short',
@@ -44,25 +89,27 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
 
     const estimatedDuration = quiz.questions ? Math.ceil(quiz.questions.length * 0.5) : 0;
 
-    const handleAction = (action: string, e: React.MouseEvent) => {
+    function handleAction(action: string, e: React.MouseEvent) {
         e.stopPropagation();
         setShowDropdown(false);
 
         switch (action) {
-            case 'edit':
+            case 'launch':
                 setOpenLaunchQuizModal(true);
+                setOpen(false);
                 break;
             case 'delete':
                 console.log('Delete quiz:', quiz.id);
                 break;
-            case 'preview':
-                console.log('Preview quiz:', quiz.id);
+            case 'publish':
+                setOpenPublishQuizModal(true);
+                setOpen(false);
                 break;
         }
     };
 
-    const handleCardClick = () => {
-        console.log('Open quiz:', quiz.id);
+    function handleCardClick() {
+        router.push(`/quiz/${quiz.id}`);
     };
 
     return (
@@ -105,7 +152,7 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
                             <div className="absolute right-0 top-8 z-20 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
                                 <button
                                     type="button"
-                                    onClick={(e) => handleAction('edit', e)}
+                                    onClick={(e) => handleAction('launch', e)}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
                                 >
                                     <Rocket className="w-4 h-4" />
@@ -113,11 +160,11 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={(e) => handleAction('preview', e)}
+                                    onClick={(e) => handleAction('publish', e)}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
                                 >
                                     <Play className="w-4 h-4" />
-                                    Preview
+                                    Publish
                                 </button>
                                 <button
                                     type="button"
@@ -154,6 +201,13 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
                         <span>~{estimatedDuration} min</span>
                     </div>
                 )}
+                {quiz.isPublished && (
+                    <div className="flex items-center gap-1 bg-green-500/30 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-md border border-green-500 shadow-sm">
+                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
+                        Published
+                    </div>
+                )}
+
             </div>
 
             {/* Footer */}
@@ -191,7 +245,8 @@ export default function QuizCard({ quiz, session }: QuizCardProps) {
                     </div>
                 </div>
             </div>
-            {openLaunchQuizModal && <LaunchQuizModal quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
+            {openLaunchQuizModal && <LaunchQuizModal loading={loading} quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
+            {openPublishQuizModal && <PublishQuizModal loading={loading} quiz={quiz} setOpenPublishQuizModal={setOpenPublishQuizModal} publishQuizHandler={publishQuizHandler} />}
         </div>
     );
 }

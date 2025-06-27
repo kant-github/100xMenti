@@ -14,12 +14,22 @@ export const useOwnerQuizsStore = create<UseOwnerQuizsStoreProps>((set, get) => 
     if (!data) return;
 
     const prev = get().quizs;
-
-    // Handle both single and multiple
     const items = Array.isArray(data) ? data : [data];
 
-    set({ quizs: [...prev, ...items] });
+    const updated = [...prev];
+
+    items.forEach((newQuiz) => {
+      const index = updated.findIndex((q) => q.id === newQuiz.id);
+      if (index !== -1) {
+        updated[index] = newQuiz;
+      } else {
+        updated.push(newQuiz);
+      }
+    });
+
+    set({ quizs: updated });
   },
+
 
   resetQuizs: () => set({ quizs: [] }),
 }));

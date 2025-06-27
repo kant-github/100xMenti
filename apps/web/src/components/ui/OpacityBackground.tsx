@@ -17,6 +17,7 @@ export default function OpacityBackground({ children, className, onBackgroundCli
     }, []);
 
     const handleBackgroundClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (e.target === e.currentTarget && onBackgroundClick) {
             onBackgroundClick();
         }

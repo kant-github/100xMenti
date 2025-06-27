@@ -1,15 +1,38 @@
-import { QuizType } from "@/types/types";
-import { Clock, FileText, Calendar, MoreVertical, Edit, Trash2, Play } from "lucide-react";
+import { CustomSession, QuizType } from "@/types/types";
+import { Clock, FileText, Calendar, MoreVertical, Edit, Trash2, Play, Rocket } from "lucide-react";
 import { useState } from "react";
+import LaunchQuizModal from "./LaunchQuizModal";
+import axios from "axios";
+import { LAUNCH_QUIZ_URL } from "@/lib/api_routes";
 
 interface QuizCardProps {
     quiz: QuizType;
+    session: CustomSession;
 }
 
-export default function QuizCard({ quiz }: QuizCardProps) {
+export default function QuizCard({ quiz, session }: QuizCardProps) {
     const [showDropdown, setShowDropdown] = useState(false);
+    const [openLaunchQuizModal, setOpenLaunchQuizModal] = useState(false);
 
-    // Format date to readable format
+
+    async function launchQuizHandler(quizId: string) {
+        if (!quizId || !session.user.token) {
+            console.log("returning");
+            return;
+        }
+
+        try {
+            const { data } = await axios.post(`${LAUNCH_QUIZ_URL}/${quizId}`, {}, {
+                headers: {
+                    Authorization: `Bearer ${session.user.token}`
+                }
+            })
+            console.log("data is : ", data);
+        } catch (err) {
+            console.log("Error in launching the quiz", err);
+        }
+    }
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', {
@@ -19,7 +42,6 @@ export default function QuizCard({ quiz }: QuizCardProps) {
         });
     };
 
-    // Calculate estimated duration (assuming 30 seconds per question)
     const estimatedDuration = quiz.questions ? Math.ceil(quiz.questions.length * 0.5) : 0;
 
     const handleAction = (action: string, e: React.MouseEvent) => {
@@ -28,7 +50,7 @@ export default function QuizCard({ quiz }: QuizCardProps) {
 
         switch (action) {
             case 'edit':
-                console.log('Edit quiz:', quiz.id);
+                setOpenLaunchQuizModal(true);
                 break;
             case 'delete':
                 console.log('Delete quiz:', quiz.id);
@@ -40,7 +62,6 @@ export default function QuizCard({ quiz }: QuizCardProps) {
     };
 
     const handleCardClick = () => {
-        // Navigate to quiz editor or details
         console.log('Open quiz:', quiz.id);
     };
 
@@ -49,7 +70,6 @@ export default function QuizCard({ quiz }: QuizCardProps) {
             className="group relative bg-neutral-100 border-[1px] border-neutral-300 rounded-xl p-5 hover:shadow-sm hover:border-gray-300 transition-all duration-200 cursor-pointer mb-4 ease-in"
             onClick={handleCardClick}
         >
-            {/* Header */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
@@ -88,8 +108,8 @@ export default function QuizCard({ quiz }: QuizCardProps) {
                                     onClick={(e) => handleAction('edit', e)}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
                                 >
-                                    <Edit className="w-4 h-4" />
-                                    Edit Quiz
+                                    <Rocket className="w-4 h-4" />
+                                    Launch
                                 </button>
                                 <button
                                     type="button"
@@ -98,6 +118,14 @@ export default function QuizCard({ quiz }: QuizCardProps) {
                                 >
                                     <Play className="w-4 h-4" />
                                     Preview
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => handleAction('edit', e)}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit Quiz
                                 </button>
                                 <button
                                     type="button"
@@ -163,6 +191,7 @@ export default function QuizCard({ quiz }: QuizCardProps) {
                     </div>
                 </div>
             </div>
+            {openLaunchQuizModal && <LaunchQuizModal quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
         </div>
     );
 }

@@ -1,14 +1,14 @@
 const templates = [
     {
         id: 'CLASSIC',
-        name: 'Deep Blue Classic',
-        bg: '#2563EB',
+        name: 'Classic White',
+        bg: '#FDFAF6',
         bars: ['#2A1458', '#FFC107', '#B22222', '#06D001'],
     },
     {
         id: 'MODERN',
         name: 'Electric Modern',
-        bg: '#7C3AED',
+        bg: '#F5F5F5',
         accent: '#d1beff',
         bars: ['#640D5F', '#D91656', '#EB5B00', '#FFB200'],
     },

@@ -5,6 +5,7 @@ import createQuizController from "../controller/quiz-controller/createQuizContro
 import getQuizController from "../controller/quiz-controller/getQuizController";
 import verifyQuizOwnerMiddleware from "../middlewares/verifyQuizOwnerMiddleware";
 import getHostsQuizsController from "../controller/quiz-controller/getHostsQuizsController";
+import launchQuizController from "../controller/quiz-controller/launchQuizController";
 
 const router: Router = Router();
 
@@ -16,5 +17,6 @@ router.get('/test', authMiddleware);
 router.post('/create-quiz', authMiddleware, createQuizController);
 router.get('/get-quiz/:quizId', authMiddleware, verifyQuizOwnerMiddleware, getQuizController);
 router.get('/get-owner-quizs', authMiddleware, getHostsQuizsController);
+router.post('/launch-quiz/:quizId', authMiddleware, verifyQuizOwnerMiddleware, launchQuizController);
 
 export default router;

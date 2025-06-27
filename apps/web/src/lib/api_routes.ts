@@ -3,3 +3,4 @@ export const API_URL = BACKEND_BASE_URL + '/api';
 export const CREATE_QUIZ_URL = API_URL + '/create-quiz';
 export const GET_QUIZ_URL = API_URL + '/get-quiz';
 export const GET_OWNER_QUIZS_URL = API_URL + '/get-owner-quizs';
+export const LAUNCH_QUIZ_URL = API_URL + '/launch-quiz';

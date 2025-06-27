@@ -6,6 +6,7 @@ import QuizCard from "./QuizCard";
 import { Button } from "./button";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from 'uuid'
+import { useSessionStore } from "@/zustand/sessionZustand";
 
 interface DraftedQuizSidebarProps {
     open: boolean;
@@ -14,7 +15,7 @@ interface DraftedQuizSidebarProps {
 
 export default function DraftedQuizSidebar({ open, setOpen }: DraftedQuizSidebarProps) {
     const { quizs } = useOwnerQuizsStore();
-
+    const { session } = useSessionStore();
     const router = useRouter()
     function createQuizHandler() {
         const uuid = uuidv4();
@@ -40,7 +41,7 @@ export default function DraftedQuizSidebar({ open, setOpen }: DraftedQuizSidebar
                         {quizs.length > 0 ? (
                             <div className="gap-y-4">
                                 {quizs.map((quiz) => (
-                                    <QuizCard key={quiz.id} quiz={quiz} />
+                                    <QuizCard session={session} key={quiz.id} quiz={quiz} />
                                 ))}
                             </div>
                         ) : (

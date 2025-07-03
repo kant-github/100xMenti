@@ -12,6 +12,14 @@ export default async function getHostsQuizsController(req: Request, res: Respons
         const quizzes = await prisma.quiz.findMany({
             where: {
                 creator_id: String(user.id)
+            },
+            include: {
+                questions: true,
+                _count: {
+                    select: {
+                        questions: true
+                    }
+                }
             }
         })
 

@@ -5,7 +5,6 @@ import { CustomWebSocket, MESSAGE_TYPES, ParticipantData, QuizRoom } from "../ty
 import { prisma } from "../lib/prisma";
 import jwt from 'jsonwebtoken';
 
-
 export default class WebSocketServer {
     private wss: WSServer;
     private socketMapping: Map<string, CustomWebSocket>;
@@ -53,7 +52,6 @@ export default class WebSocketServer {
             default:
                 throw new Error('Unknown type came')
         }
-
     }
 
     private handleJoinQuiz(ws: CustomWebSocket, payload: any) {

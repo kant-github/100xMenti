@@ -19,15 +19,12 @@ export default async function launchQuizController(req: Request, res: Response) 
 
     try {
         //first check if the request for which the quizId should be lauched exists or not ?
-
         const quiz = await prisma.quiz.findUnique({
             where: { id: quizId },
             include: {
                 questions: true
             }
         })
-
-        console.log("quiz is : ", quiz);
 
         if (!quiz) {
             res.status(404).json({
@@ -38,7 +35,7 @@ export default async function launchQuizController(req: Request, res: Response) 
         }
 
         if (!quiz.isPublished) {
-            res.status(400).json({
+            res.status(200).json({
                 success: false,
                 message: "Quiz must be published before launching"
             });
@@ -62,10 +59,8 @@ export default async function launchQuizController(req: Request, res: Response) 
             }
         });
 
-        console.log("existing session is : ", existingSession);
-
         if (existingSession) {
-            res.status(409).json({
+            res.status(200).json({
                 success: false,
                 message: "Quiz already has an active session",
                 sessionCode: existingSession.sessionCode
@@ -74,7 +69,6 @@ export default async function launchQuizController(req: Request, res: Response) 
         }
 
         const getNewSessionCode = await generateRandom6digitCode();
-        console.log("new session code is : ", getNewSessionCode);
         const liveSession = await prisma.liveSession.create({
             data: {
                 sessionCode: getNewSessionCode,

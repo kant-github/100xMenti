@@ -1,12 +1,8 @@
 import Bull from "bull";
 import { prisma } from "../lib/prisma";
 import { redisClient } from "../lib/redis";
-
-export enum OPERATION_TYPES {
-    CREATE_PARTICIPANT = 'CREATE_PARTICIPANT',
-    UPDATE_PARTICIPANT_SCORE = 'UPDATE_PARTICIPANT_SCORE',
-    CREATE_QUESTION_RESPONSE = 'CREATE_QUESTION_RESPONSE',
-}
+import Redis from "ioredis";
+import { QueueJobTypes } from "../types/RedisQueueOperationTypes";
 
 const databaseQueue = new Bull('database-operations', {
     redis: {
@@ -16,20 +12,20 @@ const databaseQueue = new Bull('database-operations', {
     }
 })
 
-databaseQueue.process(OPERATION_TYPES.CREATE_PARTICIPANT, async (job) => {
-    const { sessionId, participantData } = job.data;
+databaseQueue.process(QueueJobTypes.CREATE_PARTICIPANT, async (job) => {
+    const { liveSessionId, participantData } = job.data;
 
     try {
         const participant = await prisma.participant.create({
             data: {
-                sessionId: sessionId,
+                sessionId: liveSessionId,
                 name: participantData.name,
                 avatar: participantData.avatar
             }
         })
 
         await redisClient.hset(
-            `sessiom:${sessionId}:participants`,
+            `sessiom:${liveSessionId}:participants`,
             participant.id,
             JSON.stringify({
                 ...participant,
@@ -44,7 +40,7 @@ databaseQueue.process(OPERATION_TYPES.CREATE_PARTICIPANT, async (job) => {
     }
 })
 
-databaseQueue.process(OPERATION_TYPES.UPDATE_PARTICIPANT_SCORE, async (job) => {
+databaseQueue.process(QueueJobTypes.UPDATE_PARTICIPANT_SCORE, async (job) => {
     const { scoreData, participantId } = job.data;
     const participant = await prisma.participant.update({
         where: {
@@ -60,6 +56,26 @@ databaseQueue.process(OPERATION_TYPES.UPDATE_PARTICIPANT_SCORE, async (job) => {
     return { success: true, participant };
 })
 
-databaseQueue.process(OPERATION_TYPES.CREATE_QUESTION_RESPONSE, async (job) => {
-    
+databaseQueue.process(QueueJobTypes.CREATE_QUESTION_RESPONSE, async (job) => {
+
 })
+
+
+export class DatabaseQueue {
+    static async createParticipant(liveSessionId: string, participantData: {
+        name: string,
+        avatar: string,
+        socketId: string
+    }) {
+        return databaseQueue.add(QueueJobTypes.CREATE_PARTICIPANT,
+            {
+                liveSessionId,
+                participantData
+            },
+            {
+                attempts: 3,
+                delay: 1000,
+            }
+        )
+    }
+}

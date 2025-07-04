@@ -1,5 +1,6 @@
 import Redis from "ioredis";
 import { ParticipantData, QuizRoom } from "../types/WebSocketTypes";
+import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
 
 export default class RedisSessionService {
     private redis: Redis
@@ -13,17 +14,17 @@ export default class RedisSessionService {
         })
     }
 
-    public async createSession(sessionId: string, quizRoom: QuizRoom) {
+    public async createSession(sessionId: string, liveSession: LiveSessionCache) {
         try {
             const sessionKey = `session:${sessionId}`;
             await this.redis.hmset(sessionKey, {
-                sessionCode: quizRoom.sessionCode,
-                hostId: quizRoom.hostId,
-                quizId: quizRoom.quizId,
-                currentQuestionIndex: quizRoom.currentQuestionIndex.toString(),
-                currentQuestionId: quizRoom.currentQuestionId || '',
-                status: quizRoom.status,
-                questionStartTime: quizRoom.questionStartTime?.toString() || '',
+                sessionCode: liveSession.sessionCode,
+                hostId: liveSession.hostId,
+                quizId: liveSession.quizId,
+                currentQuestionIndex: liveSession.currentQuestionIndex.toString(),
+                currentQuestionId: liveSession.currentQuestionId || '',
+                status: liveSession.status,
+                questionStartTime: liveSession.questionStartTime?.toString() || '',
                 createdAt: Date.now().toString()
             })
             await this.redis.expire(sessionKey, 24 * 60 * 60);
@@ -32,7 +33,7 @@ export default class RedisSessionService {
         }
     }
 
-    public async getSession(sessionId: string) {
+    public async getLiveSession(sessionId: string): Promise<LiveSessionCache> {
         const sessionKey = `session:${sessionId}`
         try {
             const sessionData = await this.redis.hgetall(sessionKey);
@@ -41,15 +42,15 @@ export default class RedisSessionService {
                 return null;
             }
 
-            const participants = this.getSessionParticipant(sessionId);
+            const participants = await this.getSessionParticipant(sessionId);
 
             return {
                 sessionId,
                 sessionCode: sessionData.sessionCode,
                 hostId: sessionData.hostId,
                 quizId: sessionData.quizId,
-                participants,
-                currentQuestionIndex: parseInt(sessionData.currentQuestionIndex),
+                // participants,
+                currentQuestionIndex: Number(sessionData.currentQuestionIndex),
                 currentQuestionId: sessionData.currentQuestionId || null,
                 status: sessionData.status as any,
                 questionStartTime: sessionData.questionStartTime ? new Date(parseInt(sessionData.questionStartTime)) : null,
@@ -72,7 +73,7 @@ export default class RedisSessionService {
         })
     }
 
-    public async addParticipant(sessionId: string, participant: ParticipantData) {
+    public async addParticipant(sessionId: string, participant: ParticipantDataCache) {
         const participantKey = `session:${sessionId}:participants`
         await this.redis.hset(
             participantKey,
@@ -92,7 +93,7 @@ export default class RedisSessionService {
         await this.redis.expire(participantKey, 24 * 60 * 60);
     }
 
-    public async removeParticipant(sessionId: string, participant: ParticipantData) {
+    public async removeParticipant(sessionId: string, participant: ParticipantDataCache) {
         const participantKey = `session:${sessionId}:participants`
         await this.redis.hdel(participantKey, participant.id);
     }
@@ -101,7 +102,7 @@ export default class RedisSessionService {
         const sessionKey = `session:${sessionId}:participants`;
         try {
             const participantsData = await this.redis.hgetall(sessionKey);
-            const participants = new Map<string, ParticipantData>();
+            const participants = new Map<string, ParticipantDataCache>();
 
             for (const [id, data] of Object.entries(participantsData)) {
                 try {
@@ -115,5 +116,18 @@ export default class RedisSessionService {
         } catch (err) {
             console.error("Error in getting session participants", err);
         }
+    }
+
+    public async updateParticipantScore(sessionId: string, participantId: string, scoreData: {
+        totalScore: number;
+        correctCount: number;
+        incorrectCount: number;
+    }) {
+        const participantKey = `session:${sessionId}:participants`;
+
+        await this.redis.hset(
+            participantKey,
+            participantId,
+        )
     }
 }

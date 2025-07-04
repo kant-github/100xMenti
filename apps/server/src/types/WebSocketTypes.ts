@@ -10,11 +10,40 @@ export interface CustomWebSocket extends WebSocket {
     user: AuthUser
 }
 
-export const MESSAGE_TYPES = {
-    JOIN_QUIZ: 'JOIN QUIZ',
-    LEAVE_QUIZ: 'LEAVE QUIZ',
-    ERROR: 'ERROR'
+export enum MESSAGE_TYPES {
+    // Connection
+    JOIN_QUIZ = 'JOIN_QUIZ',
+    LEAVE_QUIZ = 'LEAVE_QUIZ',
+    JOINED_QUIZ = 'JOINED_QUIZ',
+
+    // Quiz Management
+    QUIZ_CREATED = 'QUIZ_CREATED',
+    START_QUIZ = 'START_QUIZ',
+    QUIZ_STARTED = 'QUIZ_STARTED',
+    NEXT_QUESTION = 'NEXT_QUESTION',
+    QUESTION_STARTED = 'QUESTION_STARTED',
+    END_QUIZ = 'END_QUIZ',
+    QUIZ_ENDED = 'QUIZ_ENDED',
+
+    // Participants
+    PARTICIPANT_JOINED = 'PARTICIPANT_JOINED',
+    PARTICIPANT_LEFT = 'PARTICIPANT_LEFT',
+    PARTICIPANT_LIST = 'PARTICIPANT_LIST',
+
+    // Answers
+    SUBMIT_ANSWER = 'SUBMIT_ANSWER',
+    ANSWER_RESULT = 'ANSWER_RESULT',
+    ANSWER_SUBMITTED = 'ANSWER_SUBMITTED',
+
+    // Leaderboard
+    LEADERBOARD_UPDATE = 'LEADERBOARD_UPDATE',
+
+    // System
+    ERROR = 'ERROR',
+    HEARTBEAT = 'HEARTBEAT',
+    SYSTEM_MESSAGE = 'SYSTEM_MESSAGE'
 }
+
 
 export interface QuizRoom {
     sessionId: string;

@@ -20,7 +20,7 @@ export default async function createQuizController(req: Request, res: Response) 
         }
         console.log("user id is : ", user.id);
         const result = await prisma.$transaction(async (tx) => {
-            // Check if quiz exists
+            
             const existingQuiz = await tx.quiz.findUnique({
                 where: { id: newQuizId }
             });

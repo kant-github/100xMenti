@@ -2,8 +2,8 @@ import { ISODateString } from "next-auth";
 import { UserType as SessionUserType } from "../../app/api/auth/[...nextauth]/options";
 
 export interface CustomSession {
-    user?: SessionUserType;
-    expires: ISODateString;
+  user?: SessionUserType;
+  expires: ISODateString;
 }
 
 export enum Template {
@@ -22,13 +22,17 @@ export enum QuestionEnumType {
 }
 
 export enum SessionStatus {
-  WAITING = 'WAITING',
-  STARTING = 'STARTING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  PAUSED = 'PAUSED',
-  FINISHED = 'FINISHED',
-  CANCELLED = 'CANCELLED'
+  WAITING = "WAITING",
+  STARTING = "STARTING",
+  IN_PROGRESS = "IN_PROGRESS",
+  PAUSED = "PAUSED",
+  FINISHED = "FINISHED",
+  CANCELLED = "CANCELLED",
+  QUESTION_TRANSITION = "QUESTION_TRANSITION",
+  QUESTION_ACTIVE = "QUESTION_ACTIVE",
+  QUESTION_ENDED = "QUESTION_ENDED",
 }
+
 
 export interface UserType {
   id: string;

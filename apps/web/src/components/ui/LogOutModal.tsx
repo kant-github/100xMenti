@@ -49,7 +49,7 @@ export default function LogOutModal({ logoutDropdown, setLogoutDropDown }: props
                     </p>
                     <div className="items-center justify-end gap-4 pt-4 pr-2 w-full grid grid-cols-2">
                         <Button className="border-[1px] border-neutral-300 bg-neutral-100" onClick={() => setLogoutDropDown(false)}>Cancel</Button>
-                        <Button className="bg-red-500" onClick={handleLogout}>
+                        <Button className="bg-red-500 text-neutral-100 font-light" onClick={handleLogout}>
                             Log out
                         </Button>
                     </div>

@@ -1,6 +1,5 @@
 import { SessionStatus } from "@prisma/client";
 
-// Redis cache type for live session data
 export interface LiveSessionCache {
     sessionId: string;
     sessionCode: string;
@@ -9,6 +8,7 @@ export interface LiveSessionCache {
     currentQuestionIndex: number;
     currentQuestionId?: string | null;
     status: SessionStatus;
+    allowLateJoin: boolean,
     questionStartTime?: Date | null;
     participants?: Map<string, ParticipantDataCache>; // Make optional since you're commenting it out
     createdAt?: Date;

@@ -28,6 +28,7 @@ export default function PublishQuizModal({ setOpenPublishQuizModal, publishQuizH
 
                 <div className="flex gap-3 w-full">
                     <Button
+                        disabled={loading}
                         onClick={() => publishQuizHandler(quiz.id)}
                         className="px-6 py-5 bg-neutral-900 text-white hover:bg-neutral-800 transition rounded-xl flex-1"
                     >

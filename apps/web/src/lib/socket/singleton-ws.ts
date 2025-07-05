@@ -1,0 +1,3 @@
+let ws: WebSocket | null;
+
+

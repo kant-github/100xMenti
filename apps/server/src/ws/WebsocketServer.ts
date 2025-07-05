@@ -6,7 +6,7 @@ import { prisma } from "../lib/prisma";
 import jwt from 'jsonwebtoken';
 import RedisSessionService from "../service/RedisSessionService";
 import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
-import { LiveSession } from "@prisma/client";
+import { LiveSession, SessionStatus } from "@prisma/client";
 import { DatabaseQueue } from "../queue/databaseQueue";
 
 export default class WebSocketServer {
@@ -91,27 +91,18 @@ export default class WebSocketServer {
         let liveSessionCache: LiveSessionCache = await this.redisService.getLiveSession(sessionId);
 
         if (!liveSessionCache) {
-            const liveSession = await prisma.liveSession.findUnique({
-                where: { id: sessionId }
-            })
-            if (!liveSession) {
-                this.sendError(ws, 'Room is not live or does not exist');
-                return;
-            }
+            this.sendError(ws, 'Quiz session has not been started by the host. Please wait for the host to start the session.');
+            return;
+        }
 
-            liveSessionCache = {
-                sessionId,
-                sessionCode: liveSession.sessionCode,
-                hostId: liveSession.hostId,
-                quizId: liveSession.quizId,
-                currentQuestionIndex: liveSession.currentQuestionIndex,
-                currentQuestionId: liveSession.currentQuestionId || '',
-                status: liveSession.status,
-                questionStartTime: null,
-                participants: new Map<string, ParticipantDataCache>(),
-            }
+        if (liveSessionCache.status === SessionStatus.IN_PROGRESS && !liveSessionCache.allowLateJoin) {
+            this.sendError(ws, 'Quiz is already in progress and late joining is not allowed');
+            return;
+        }
 
-            await this.redisService.createSession(sessionId, liveSessionCache);
+        if (liveSessionCache.status === SessionStatus.FINISHED) {
+            this.sendError(ws, 'Quiz session has already ended');
+            return;
         }
 
         await this.addParticipantToRoom(ws, liveSessionCache, { participantName, avatar })
@@ -132,6 +123,7 @@ export default class WebSocketServer {
             currentQuestionIndex: liveSession.currentQuestionIndex,
             currentQuestionId: liveSession.currentQuestionId || '',
             status: liveSession.status,
+            allowLateJoin: false,
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
         }

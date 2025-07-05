@@ -158,4 +158,7 @@ enum SessionStatus {
   PAUSED // Temporarily paused
   FINISHED // Quiz completed
   CANCELLED // Session cancelled
+  QUESTION_TRANSITION
+  QUESTION_ACTIVE
+  QUESTION_ENDED
 }

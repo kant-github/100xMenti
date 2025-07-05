@@ -12,12 +12,12 @@ export default function RootLayout({
 
   return (
     <html suppressHydrationWarning={true} lang="en">
-      <SessionProvider>
-        <Toaster />
-        <body className={`bg-neutral-100 dark:bg-neutral-900`}>
+      <body className={`bg-neutral-100 dark:bg-neutral-900`}>
+        <SessionProvider>
           {children}
-        </body>
-      </SessionProvider>
+          <Toaster />
+        </SessionProvider>
+      </body>
     </html>
   );
 }

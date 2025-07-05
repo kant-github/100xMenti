@@ -11,12 +11,18 @@ export default function SessionWrapper({
 }) {
   const { data: sessionData } = useSession();
   const { setSession } = useSessionStore();
-  
+
   useEffect(() => {
     if (sessionData) {
       setSession(sessionData);
     }
   }, [sessionData, setSession]);
 
-  return <div>{children}</div>;
+  return (
+    <html lang="en">
+      <body className="h-full">
+        {children}
+      </body>
+    </html>
+  );
 }

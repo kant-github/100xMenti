@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import PublishQuizModal from "./PublishQuizModal";
 import { useOwnerQuizsStore } from "@/zustand/ownerQuizsStore";
 import { useToast } from "@/hooks/useToast";
+import PublishedTicker from "../ticker/PublishedTicker";
 
 interface QuizCardProps {
     quiz: QuizType;
@@ -26,9 +27,13 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
 
     async function publishQuizHandler(quizId: string) {
         if (!quizId || !session.user.token) {
-            console.log("returning");
+            toast({
+                title: "Error",
+                description: "Missing quiz ID or authentication token",
+            });
             return;
         }
+
         try {
             setLoading(true);
             const { data } = await axios.post(`${PUBLISH_QUIZ_URL}/${quizId}`, {}, {
@@ -36,45 +41,134 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
                     Authorization: `Bearer ${session.user.token}`
                 }
             })
+
             if (data.success) {
                 setQuizs({
                     ...quiz,
                     isPublished: true
-                })
-            }
-            if (data.message) {
+                });
                 toast({
-                    title: data.message
-                })
+                    title: "Success",
+                    description: data.message || "Quiz published successfully",
+                });
+            } else {
+                toast({
+                    title: "Failed to publish quiz",
+                    description: data.message || "An error occurred while publishing the quiz",
+                });
+            }
+            setOpen(true);
+        } catch (err: any) {
+            console.error("Error in publishing the quiz", err);
+
+            // Handle different types of errors
+            let errorMessage = "Failed to publish quiz";
+            if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
             }
 
-        } catch (err) {
-            console.log("Error in launching the quiz", err);
+            toast({
+                title: "Error",
+                description: errorMessage,
+            });
         } finally {
             setLoading(false);
             setOpenPublishQuizModal(false);
         }
-
     }
 
     async function launchQuizHandler(quizId: string) {
         if (!quizId || !session.user.token) {
-            console.log("returning");
+            toast({
+                title: "Error",
+                description: "Missing quiz ID or authentication token",
+            });
             return;
         }
 
         try {
             setLoading(true);
+
             const { data } = await axios.post(`${LAUNCH_QUIZ_URL}/${quizId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${session.user.token}`
                 }
-            })
-            console.log("data is : ", data);
-        } catch (err) {
-            console.log("Error in launching the quiz", err);
+            });
+
+            console.log("Launch response data:", data);
+
+            if (data.success) {
+                toast({
+                    title: "Success",
+                    description: data.message || "Quiz launched successfully",
+                    variant: "default"
+                });
+
+                // Navigate to live quiz page
+                router.push(`/live/${quiz.id}`);
+
+                // Close any open modals
+                setOpenLaunchQuizModal(false);
+
+            } else {
+                let errorTitle = "Failed to launch quiz";
+                let errorDescription = data.message || "An error occurred while launching the quiz";
+
+                if (data.message?.includes("must be published")) {
+                    errorTitle = "Quiz not published";
+                    errorDescription = "You need to publish the quiz before launching it";
+                } else if (data.message?.includes("active session")) {
+                    errorTitle = "Quiz already active";
+                    errorDescription = `Quiz already has an active session${data.sessionCode ? ` (Code: ${data.sessionCode})` : ''}`;
+                } else if (data.message?.includes("at least one question")) {
+                    errorTitle = "No questions found";
+                    errorDescription = "Quiz must have at least one question to launch";
+                }
+
+                toast({
+                    title: errorTitle,
+                    description: errorDescription,
+                });
+
+                // Keep modal open for user to see the error and potentially fix issues
+                setOpen(true);
+            }
+
+        } catch (err: any) {
+            console.error("Error in launching the quiz", err);
+
+            // Handle different types of errors
+            let errorMessage = "Failed to launch quiz";
+            let errorTitle = "Error";
+
+            if (err.response?.status === 401) {
+                errorTitle = "Unauthorized";
+                errorMessage = "Your session has expired. Please log in again.";
+            } else if (err.response?.status === 404) {
+                errorTitle = "Quiz not found";
+                errorMessage = "The quiz you're trying to launch could not be found.";
+            } else if (err.response?.status === 400) {
+                errorMessage = err.response?.data?.message || "Invalid request parameters";
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+
+            toast({
+                title: errorTitle,
+                description: errorMessage,
+                variant: "destructive"
+            });
+
+            // Keep modal open for error cases
+            setOpen(true);
+
         } finally {
             setLoading(false);
+            setOpenLaunchQuizModal(false);
         }
     }
 
@@ -119,7 +213,7 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
         >
             <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate transition-colors">
                         {quiz.title}
                     </h3>
                     {quiz.description && (
@@ -202,10 +296,7 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
                     </div>
                 )}
                 {quiz.isPublished && (
-                    <div className="flex items-center gap-1 bg-green-500/30 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-md border border-green-500 shadow-sm">
-                        <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
-                        Published
-                    </div>
+                    <PublishedTicker />
                 )}
 
             </div>
@@ -245,7 +336,7 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
                     </div>
                 </div>
             </div>
-            {openLaunchQuizModal && <LaunchQuizModal loading={loading} quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
+            {openLaunchQuizModal && <LaunchQuizModal setOpen={setOpen} loading={loading} quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
             {openPublishQuizModal && <PublishQuizModal loading={loading} quiz={quiz} setOpenPublishQuizModal={setOpenPublishQuizModal} publishQuizHandler={publishQuizHandler} />}
         </div>
     );

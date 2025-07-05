@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {  Trophy, Users, Clock, BarChart3, Play, Edit3, Trash2, Eye } from 'lucide-react';
+import { Trophy, Users, Clock, BarChart3, Play, Edit3, Trash2, Eye } from 'lucide-react';
 
 export default function HomeMainSection() {
     const [activeTab, setActiveTab] = useState('overview');
@@ -112,9 +112,9 @@ export default function HomeMainSection() {
                                 type='button'
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${activeTab === tab.id
+                                className={`px-4 py-2 rounded-lg font-medium text-sm  cursor-pointer transition-all duration-200 ${activeTab === tab.id
                                     ? 'bg-neutral-900 text-white shadow-sm'
-                                    : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-700'
+                                    : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700'
                                     }`}
                             >
                                 {tab.label}

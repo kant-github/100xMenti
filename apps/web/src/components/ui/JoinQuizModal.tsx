@@ -33,10 +33,11 @@ export default function JoinQuizModal({ setOpenJoinQuizModal }: JoinQuizModalPro
         try {
             const { data } = await axios.post(`${JOIN_QUIZ_URL}/${sessionCode}`);
             if (data.success && data.quiz.id) {
+                localStorage.setItem('participant', JSON.stringify(data.participant))
+                sessionStorage.setItem('quiz_token', data.token);
                 setParticipant(data.participant);
                 setOpenJoinQuizModal(false);
                 router.push(`/live/${data.quiz.id}`)
-                localStorage.setItem('participant', JSON.stringify(data.participant))
             }
 
         } catch (err) {

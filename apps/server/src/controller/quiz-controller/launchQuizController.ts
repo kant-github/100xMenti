@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import generateRandom6digitCode from "../../lib/generateRandom6digitCode";
 import { prisma } from "../../lib/prisma";
+import jwt from 'jsonwebtoken';
 
 export default async function launchQuizController(req: Request, res: Response) {
     const user = req.user;
@@ -8,6 +9,7 @@ export default async function launchQuizController(req: Request, res: Response) 
         res.status(401).json({ message: "Unauthorized" });
         return;
     }
+    const JWT_SECRET = process.env.JWT_SECRET;
     const { quizId } = req.params;
     if (!quizId) {
         res.status(400).json({
@@ -18,7 +20,6 @@ export default async function launchQuizController(req: Request, res: Response) 
     }
 
     try {
-        //first check if the request for which the quizId should be lauched exists or not ?
         const quiz = await prisma.quiz.findUnique({
             where: { id: quizId },
             include: {
@@ -97,7 +98,20 @@ export default async function launchQuizController(req: Request, res: Response) 
             }
         })
 
-        console.log("live session created is : ", liveSession);
+        const hostTokenPayload = {
+            hostId: user.id,
+            sessionId: liveSession.id,
+            quizId: quiz.id,
+            type: 'host',
+            sessionCode: liveSession.sessionCode
+        };
+
+        const hostToken = jwt.sign(hostTokenPayload, JWT_SECRET, {
+            expiresIn: '2h',
+            issuer: 'quiz-app',
+            audience: 'quiz-host'
+        });
+
         res.status(201).json({
             success: true,
             message: "Quiz launched successfully",
@@ -106,11 +120,12 @@ export default async function launchQuizController(req: Request, res: Response) 
                 sessionCode: liveSession.sessionCode,
                 status: liveSession.status,
                 quiz: liveSession.quiz,
-                createdAt: liveSession.createdAt
+                createdAt: liveSession.createdAt,
+                hostToken: hostToken
+
             }
         });
         return;
-
     } catch (err) {
         console.error('Error launching quiz:', err);
         res.status(500).json({

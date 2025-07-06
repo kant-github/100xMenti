@@ -7,7 +7,7 @@ export interface MessageType {
 
 export interface CustomWebSocket extends WebSocket {
     id: string;
-    user: AuthUser
+    user: HostTokenPayload | ParticipantTokenPayload
 }
 
 export enum MESSAGE_TYPES {
@@ -67,4 +67,31 @@ export interface ParticipantData {
     incorrectCount: number;
     isActive: boolean;
     joinedAt: Date;
+}
+
+
+
+interface BaseTokenPayload {
+  sessionId: string;
+  quizId: string;
+  type: 'host' | 'participant';
+  iat?: number; // issued at (JWT standard)
+  exp?: number; // expiration time (JWT standard)
+  iss?: string; // issuer (JWT standard)
+  aud?: string; // audience (JWT standard)
+}
+
+export interface HostTokenPayload extends BaseTokenPayload {
+  type: 'host';
+  hostId: string;
+  sessionCode: string;
+}
+
+export interface ParticipantTokenPayload extends BaseTokenPayload {
+  type: 'participant';
+  participantId: string;
+  name: string;
+  avatar: string;
+  isActive?: boolean;
+  joinedAt?: string;
 }

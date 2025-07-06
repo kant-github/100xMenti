@@ -2,7 +2,8 @@
 const nextConfig = {
     images: {
         domains: ['lh3.googleusercontent.com', 's3.eu-north-1.amazonaws.com', 'images.unsplash.com'],
-    }
+    },
+    reactStrictMode: false
 };
 
 export default nextConfig;

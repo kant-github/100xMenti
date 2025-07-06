@@ -142,13 +142,9 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
                     description: data.message || "Quiz launched successfully",
                     variant: "default"
                 });
-
-                // Navigate to live quiz page
-                router.push(`/live/${quiz.id}`);
-
-                // Close any open modals
+                sessionStorage.setItem('host_token', data.data.hostToken);
                 setOpenLaunchQuizModal(false);
-
+                router.push(`/live/${quiz.id}`);
             } else {
                 let errorTitle = "Failed to launch quiz";
                 let errorDescription = data.message || "An error occurred while launching the quiz";
@@ -376,7 +372,7 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
             </div>
             {openLaunchQuizModal && <LaunchQuizModal setOpen={setOpen} loading={loading} quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
             {openPublishQuizModal && <PublishQuizModal loading={loading} quiz={quiz} setOpenPublishQuizModal={setOpenPublishQuizModal} publishQuizHandler={publishQuizHandler} />}
-            {openDeleteQuizModal && <DeleteQuizModal loading={loading} quiz={quiz} setOpenDeleteQuizModal={setOpenDeleteQuizModal} deleteQuizHandler={deleteQuizHandler} setOpen={setOpen}/>}
+            {openDeleteQuizModal && <DeleteQuizModal loading={loading} quiz={quiz} setOpenDeleteQuizModal={setOpenDeleteQuizModal} deleteQuizHandler={deleteQuizHandler} setOpen={setOpen} />}
         </div>
     );
 }

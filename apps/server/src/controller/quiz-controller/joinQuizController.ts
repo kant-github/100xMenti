@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
-
+import jwt from 'jsonwebtoken'
 export default async function joinQuizController(req: Request, res: Response) {
 
     const { sessionCode } = req.params;
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    if (!JWT_SECRET) {
+        console.error('JWT_SECRET is not defined');
+        res.status(500).json({
+            error: 'Server configuration error'
+        });
+        return;
+    }
 
     if (!sessionCode) {
         res.status(500).json({
@@ -32,6 +41,23 @@ export default async function joinQuizController(req: Request, res: Response) {
             }
         })
 
+        const participantTokenPayload = {
+            participantId: participant.id,
+            sessionId: liveSession.id,
+            quizId: liveSession.quizId,
+            type: 'participant',
+            name: participant.name,
+            avatar: participant.avatar
+        };
+
+
+        const participantToken = jwt.sign(participantTokenPayload, JWT_SECRET, {
+            expiresIn: '2h',
+            issuer: 'quiz-app',
+            audience: 'quiz-participant'
+        })
+
+
         res.json({
             success: true,
             participant: {
@@ -45,8 +71,9 @@ export default async function joinQuizController(req: Request, res: Response) {
                 status: liveSession.status
             },
             quiz: {
-                id: liveSession.quizId                
-            }
+                id: liveSession.quizId
+            },
+            token: participantToken
         });
         return;
     } catch (err) {

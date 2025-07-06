@@ -74,7 +74,7 @@ export default class WebSocketClient {
     }
 
     public joinQuiz() {
-        
+
     }
 
     private emit(event: string, payload: any) {
@@ -117,6 +117,7 @@ export default class WebSocketClient {
         if (this.isConnected && this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         } else {
+            console.log("pushing to message queue");
             this.messageQueue.push(message);
         }
     }

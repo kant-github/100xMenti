@@ -1,12 +1,19 @@
 'use client';
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import WaitingLobbyAvatar, { Position, User } from '../waiting-lobby/WaitingLobbyAvatar';
+import WaitingLobbyBottomTicker from '../waiting-lobby/WaitingLobbyBottomTicker';
+import { useLiveQuizDataStore } from '@/zustand/liveQuizStore';
+import { Clock3, Info, User2 } from 'lucide-react';
+import { useLiveSessionStore } from '@/zustand/liveSession';
+import { Input } from '@/components/ui/input';
+import { useliveQuizMeParticipantStore } from '@/zustand/liveQuizMeParticipant';
 import Image from 'next/image';
-import { BsFillHandThumbsUpFill } from "react-icons/bs";
-
 
 export default function LiveQuizWaitingComponent() {
-    const [users] = useState([
+    const { liveQuiz } = useLiveQuizDataStore()
+    const { liveSession } = useLiveSessionStore();
+    const { participant } = useliveQuizMeParticipantStore()
+    const [users] = useState<User[]>([
         { id: 1, name: "Alice", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-1.jpg" },
         { id: 2, name: "Bob", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-2.jpg" },
         { id: 3, name: "Charlie", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-3.jpg" },
@@ -29,11 +36,10 @@ export default function LiveQuizWaitingComponent() {
     ]);
 
     const avatarSize = 100;
-    const minDistance = avatarSize + 25;
-    const maxRadius = 200;
+    const minDistance = avatarSize + 20;
 
-    const generatePositions = (total: number) => {
-        const positions = [];
+    const generatePositions = (total: number): Position[] => {
+        const positions: Position[] = [];
 
         if (total > 0) {
             positions.push({ x: 0, y: 0 });
@@ -44,7 +50,7 @@ export default function LiveQuizWaitingComponent() {
         let avatarsPlaced = 1;
 
         while (avatarsPlaced < total && layer < 10) {
-            const layerPositions = [];
+            const layerPositions: Position[] = [];
             const positionsInLayer = 6 * layer;
 
             for (let i = 0; i < positionsInLayer; i++) {
@@ -118,172 +124,112 @@ export default function LiveQuizWaitingComponent() {
         return positions;
     };
 
-    const [positions] = useState(() => generatePositions(users.length));
-
-    const Avatar = ({ user, index, total }) => {
-        const position = positions[index];
-
-        return (
-            <motion.div
-                className="absolute cursor-pointer"
-                style={{
-                    left: `calc(50% + ${position.x}px - 50px)`,
-                    top: `calc(50% + ${position.y}px - 50px)`,
-                    transform: 'translate(-50%, -50%)',
-                    width: avatarSize,
-                    height: avatarSize,
-                }}
-                initial={{
-                    opacity: 0,
-                    scale: 0,
-                    y: 30
-                }}
-                animate={{
-                    opacity: 1,
-                    scale: 1,
-                    y: [0, -6, 0], // Gentle floating
-                }}
-                transition={{
-                    delay: index * 0.1,
-                    duration: 0.6,
-                    ease: "easeOut",
-                    y: {
-                        duration: 2.5 + Math.random() * 1,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: index * 0.2
-                    }
-                }}
-                whileHover={{
-                    scale: 1.2,
-                    zIndex: 10,
-                    transition: { type: "spring", stiffness: 300, damping: 20 }
-                }}
-                whileTap={{
-                    scale: 0.95,
-                    transition: { duration: 0.1 }
-                }}
-            >
-                <div className="relative w-full h-full group">
-                    {/* Avatar with enhanced styling */}
-                    <div className="w-full h-full rounded-full overflow-hidden shadow-2xl border-4 border-white bg-white ring-4 ring-blue-100/60 hover:ring-blue-200/80 transition-all duration-300">
-                        <Image
-                            src={user.avatar}
-                            alt={user.name}
-                            fill
-                            className="object-cover rounded-full"
-                            sizes="110px"
-                        />
-                    </div>
-
-                    {/* Online indicator */}
-                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full border-3 border-white shadow-lg">
-                        <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>
-                    </div>
-
-                    {/* Hover name tooltip */}
-                    <div
-                        className="absolute -top-14 left-1/2 transform -translate-x-1/2 whitespace-nowrap pointer-events-none hidden group-hover:block"
-                    >
-                        <span className="text-gray-800 font-medium text-sm bg-white px-4 py-2 rounded-full shadow-xl border border-gray-200">
-                            {user.name}
-                        </span>
-                    </div>
-                </div>
-            </motion.div>
-        );
-    };
+    const [positions] = useState<Position[]>(() => generatePositions(users.length));
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-            <div className="relative w-full max-w-5xl h-screen max-h-[900px]">
+        <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 ">
+            <div className='grid grid-cols-[70%_30%]'>
+                {/* Left Panel */}
+                <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
+                    {users.map((user, index) => (
+                        <WaitingLobbyAvatar
+                            key={user.id}
+                            user={user}
+                            position={positions[index]}
+                            index={index}
+                            size={avatarSize}
+                            showOnlineIndicator={true}
+                            showNameTooltip={true}
+                        />
+                    ))}
+                    <WaitingLobbyBottomTicker users={users} />
+                </div>
 
-                {/* Central glowing background - adjusted for new layout */}
-                <motion.div
-                    className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full "
-                    style={{
-                        width: maxRadius * 2.5,
-                        height: maxRadius * 2.5,
-                        background: 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.06) 50%, transparent 100%)',
-                    }}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                        rotate: 360
-                    }}
-                    transition={{
-                        duration: 1,
-                        rotate: {
-                            duration: 80,
-                            repeat: Infinity,
-                            ease: "linear"
-                        }
-                    }}
-                />
+                {/* Right Panel */}
+                <div className='h-screen border-l-[1px] border-zinc-300 shadow-xl z-[60] rounded-l-xl transform transition-transform ease-in-out duration-300 overflow-hidden flex flex-col justify-between bg-neutral-200'>
+                    <div className='p-6 flex flex-col space-y-4'>
+                        <h2 className='text-lg font-bold text-zinc-800 mb-2'># Quiz Details</h2>
 
-                {/* Inner glow for center emphasis */}
-                <motion.div
-                    className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/3 rounded-full "
-                    style={{
-                        width: minDistance * 2,
-                        height: minDistance * 2,
-                        background: 'radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 70%, transparent 100%)',
-                    }}
-                    animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.3, 0.6, 0.3]
-                    }}
-                    transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                />
+                        <div className='space-y-3'>
+                            <h3 className='font-mono text-base font-medium text-zinc-900 leading-relaxed tracking-wide'>
+                                {liveQuiz.title}
+                            </h3>
 
-                {/* Avatars positioned from center outward */}
-                {users.map((user, index) => (
-                    <Avatar
-                        key={user.id}
-                        user={user}
-                        index={index}
-                        total={users.length}
-                    />
-                ))}
-
-
-                {/* Bottom status bar */}
-                <motion.div
-                    className="absolute bottom-5 left-0 transform -translate-x-1/2 text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8, duration: 0.6 }}
-                >
-                    <div className="bg-white/85 backdrop-blur-sm rounded-full px-8 py-4 shadow-xl border border-gray-200">
-                        <div className="flex items-center gap-4">
-                            <div className="flex -space-x-2">
-                                {users.slice(0, 3).map((user) => (
-                                    <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
-                                        <Image
-                                            src={user.avatar}
-                                            alt={user.name}
-                                            width={32}
-                                            height={32}
-                                            className="object-cover w-full h-full"
-                                        />
-                                    </div>
-                                ))}
-                                {users.length > 3 && (
-                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                        +{users.length - 3}
-                                    </div>
-                                )}
-                            </div>
-                            <span className="text-sm font-medium text-gray-700">Ready to begin</span>
-                            <BsFillHandThumbsUpFill size={22} className="text-neutral-900 hover:text-[#ff0033] hover:scale-110 transition-all duration-300 ease-in-out cursor-pointer" />
+                            <p className='text-sm text-zinc-700 leading-relaxed'>
+                                {liveQuiz.description}
+                            </p>
                         </div>
+
+                        <div className='flex justify-between items-center pt-2'>
+                            <div className='flex items-center gap-x-2'>
+                                <Clock3 size={16} className='text-zinc-600' />
+                                <span className='font-semibold text-zinc-600 text-sm'>{liveQuiz.defaultTimeLimit}s</span>
+                                <span className='text-sm text-zinc-600'>per question</span>
+                            </div>
+
+                            <div className='flex items-center gap-x-2'>
+                                <User2 size={16} className='text-zinc-600' />
+                                <span className='text-sm text-zinc-600'>{liveSession.participants.length} participants</span>
+                            </div>
+                        </div>
+
+
+                        <div className="flex items-center justify-between gap-x-3 bg-neutral-100  px-4 py-2 rounded-xl shadow-sm">
+                            <div className='flex items-center gap-x-3'>
+                                <Image
+                                    src={liveQuiz.creator.image || "/placeholder-avatar.png"}
+                                    width={32}
+                                    height={32}
+                                    alt={`${liveQuiz.creator.name || "Quiz Creator"}'s avatar`}
+                                    className="rounded-full object-cover border border-neutral-300 dark:border-neutral-700"
+                                />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium text-neutral-900 ">
+                                        {liveQuiz.creator.name || "Unknown"}
+                                    </span>
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                        {liveQuiz.creator.email}
+                                    </span>
+                                </div>
+                            </div>
+                            <span className='text-sm font-medium text-neutral-500 select-none'>host</span>
+                        </div>
+
                     </div>
-                </motion.div>
+
+                    <div className='px-6 mb-4 flex flex-col space-y-4'>
+                        <div className='p-4 bg-violet-50 rounded-xl border border-violet-200'>
+                            <div className='flex items-start gap-x-3'>
+                                <Info size={16} className='text-violet-600 mt-0.5' />
+                                <div>
+                                    <h4 className='text-sm font-medium text-violet-900 mb-1'>Before you join</h4>
+                                    <ul className='text-xs text-violet-700 space-y-1'>
+                                        <li>• Make sure you have a stable internet connection</li>
+                                        <li>• Keep this tab active during the quiz</li>
+                                        <li>• Your answers will be submitted automatically</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div className='bg-neutral-800 rounded-xl border border-neutral-300 p-4'>
+                            <label className='block text-sm font-medium text-neutral-100 mb-2'>
+                                Choose your display name
+                            </label>
+                            <p className='text-xs text-neutral-300 mb-3'>
+                                This name will be visible to other participants
+                            </p>
+                            <Input
+                                type="text"
+                                placeholder="Choose your name"
+                                className="w-full mt-8 px-5 py-5 text-base rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-900 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-0 focus:shadow-none focus:border-neutral-300 outline-none ring-0"
+                                value={participant.name}
+                            />
+                        </div>
+
+
+                    </div>
+
+                </div>
             </div>
         </div>
     );

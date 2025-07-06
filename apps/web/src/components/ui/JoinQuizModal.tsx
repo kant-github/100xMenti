@@ -36,6 +36,7 @@ export default function JoinQuizModal({ setOpenJoinQuizModal }: JoinQuizModalPro
                 setParticipant(data.participant);
                 setOpenJoinQuizModal(false);
                 router.push(`/live/${data.quiz.id}`)
+                localStorage.setItem('participant', JSON.stringify(data.participant))
             }
 
         } catch (err) {

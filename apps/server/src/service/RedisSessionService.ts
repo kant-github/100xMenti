@@ -6,12 +6,7 @@ export default class RedisSessionService {
     private redis: Redis
 
     constructor() {
-        this.redis = new Redis({
-            host: process.env.REDIS_HOST || 'localhost',
-            port: parseInt(process.env.REDIS_PORT || '6379'),
-            password: process.env.REDIS_PASSWORD,
-            maxRetriesPerRequest: 3,
-        })
+        this.redis = new Redis('rediss://default:AYEUAAIjcDFlNzMzOWZlMmVlZjA0M2IxYmU1ZWU3MjA4NjAyYzYyOHAxMA@accepted-lamb-33044.upstash.io:6379')
     }
 
     public async createSession(sessionId: string, liveSession: LiveSessionCache) {
@@ -25,7 +20,8 @@ export default class RedisSessionService {
                 currentQuestionId: liveSession.currentQuestionId || '',
                 status: liveSession.status,
                 questionStartTime: liveSession.questionStartTime?.toString() || '',
-                createdAt: Date.now().toString()
+                createdAt: Date.now().toString(),
+                allowLateJoin: liveSession.allowLateJoin.toString()
             })
             await this.redis.expire(sessionKey, 24 * 60 * 60);
         } catch (err) {
@@ -37,7 +33,6 @@ export default class RedisSessionService {
         const sessionKey = `session:${sessionId}`
         try {
             const sessionData = await this.redis.hgetall(sessionKey);
-
             if (!sessionData || Object.keys(sessionData).length === 0) {
                 return null;
             }
@@ -54,6 +49,7 @@ export default class RedisSessionService {
                 currentQuestionId: sessionData.currentQuestionId || null,
                 status: sessionData.status as any,
                 questionStartTime: sessionData.questionStartTime ? new Date(parseInt(sessionData.questionStartTime)) : null,
+                allowLateJoin: sessionData.allowLateJoin === 'true'
             }
         } catch (err) {
             console.log("Error in fetching the session ", err);

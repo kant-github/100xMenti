@@ -26,6 +26,8 @@ export default class WebSocketServer {
 
     private initialize() {
         this.wss.on('connection', (ws: CustomWebSocket, url) => {
+            console.log("user came");
+
             if (!this.authenticateConnection(ws, url)) {
                 return;
             }
@@ -62,7 +64,7 @@ export default class WebSocketServer {
     }
 
     private async handleJoinQuiz(ws: CustomWebSocket, payload: any) {
-        const { participantName, avatar, sessionId, quizId } = payload;
+        const { participantId, sessionId, quizId } = payload;
 
         if (!sessionId) {
             this.sendError(ws, 'Session code is required');
@@ -77,13 +79,12 @@ export default class WebSocketServer {
         })
         const isHost: boolean = quiz.creator_id === String(ws.user.id)
 
-
         if (isHost) {
             this.handleCreateQuiz(ws, payload)
             return;
         }
 
-        if (!participantName) {
+        if (!participantId) {
             this.sendError(ws, 'Participant name is required');
             return;
         }
@@ -105,7 +106,7 @@ export default class WebSocketServer {
             return;
         }
 
-        await this.addParticipantToRoom(ws, liveSessionCache, { participantName, avatar })
+        await this.addParticipantToRoom(ws, liveSessionCache, participantId)
     }
 
     private async handleCreateQuiz(ws: CustomWebSocket, payload: any) {
@@ -135,17 +136,22 @@ export default class WebSocketServer {
             payload: {
                 sessionId: liveSession.id,
                 sessionCode: liveSession.sessionCode,
-                status: liveSession.status
+                status: liveSession.status,
             }
         })
     }
 
-    private async addParticipantToRoom(ws: CustomWebSocket, liveSession: LiveSessionCache, participantData: { participantName: string, avatar: string }) {
+    private async addParticipantToRoom(ws: CustomWebSocket, liveSession: LiveSessionCache, participantId: string) {
+
         try {
+
+            const participant = await prisma.participant.findUnique({
+                where: { id: participantId }
+            })
             const newParticipant: ParticipantDataCache = {
                 id: uuid(),
-                name: participantData.participantName,
-                avatar: participantData.avatar,
+                name: participant.name,
+                avatar: participant.avatar,
                 socketId: ws.id,
                 sessionId: liveSession.sessionId,
                 isActive: true,
@@ -156,20 +162,6 @@ export default class WebSocketServer {
             }
 
             await this.redisService.addParticipant(liveSession.sessionId, newParticipant)
-
-            // here I should queue database operation ------------>
-            const job = await DatabaseQueue.createParticipant(liveSession.sessionId, {
-                name: participantData.participantName,
-                avatar: participantData.avatar,
-                socketId: ws.id
-            })
-
-            job.finished().then((result) => {
-                if (result.success && result.participant) {
-                    newParticipant.id = result.participant.id;
-                    this.redisService.addParticipant(liveSession.sessionId, newParticipant);
-                }
-            }).catch(console.error);
 
             this.joinRoom(ws, liveSession.sessionId);
 

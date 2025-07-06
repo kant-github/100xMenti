@@ -5,11 +5,7 @@ import Redis from "ioredis";
 import { QueueJobTypes } from "../types/RedisQueueOperationTypes";
 
 const databaseQueue = new Bull('database-operations', {
-    redis: {
-        host: 'localhost',
-        port: 6379,
-        password: 'rishi123'
-    }
+    redis: 'rediss://default:AYEUAAIjcDFlNzMzOWZlMmVlZjA0M2IxYmU1ZWU3MjA4NjAyYzYyOHAxMA@accepted-lamb-33044.upstash.io:6379'
 })
 
 databaseQueue.process(QueueJobTypes.CREATE_PARTICIPANT, async (job) => {

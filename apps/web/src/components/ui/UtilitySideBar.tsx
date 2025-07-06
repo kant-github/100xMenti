@@ -22,7 +22,6 @@ export default function UtilitySideBar({ open, setOpen, content, width, bottomLo
             document.addEventListener('mousedown', handleClickOutside);
         }
 
-        // Cleanup function - only remove when component unmounts or open changes
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         }
@@ -36,7 +35,7 @@ export default function UtilitySideBar({ open, setOpen, content, width, bottomLo
                     fixed top-0 right-0 h-screen ${width} 
                     bg-neutral-200 border-l-[1px] border-zinc-300 dark:border-zinc-800 
                     dark:bg-neutral-900 dark:text-neutral-200 shadow-xl 
-                    z-[60] rounded-xl transform transition-transform 
+                    z-[60] rounded-l-xl transform transition-transform 
                     ease-in-out duration-300 overflow-hidden flex flex-col
                     ${open ? "translate-x-0" : "translate-x-full"}
                 `}

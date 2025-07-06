@@ -1,6 +1,7 @@
 'use client'
 import HostLivePanel from "@/components/live-quiz/host/HostLivePanel";
 import ParticipantsLivePanel from "@/components/panels/ParticipantsLivePanel";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { LIVE_QUIZ_URL } from "@/lib/api_routes";
 import { useliveQuizMeParticipantStore } from "@/zustand/liveQuizMeParticipant";
 import { useLiveQuizDataStore } from "@/zustand/liveQuizStore";
@@ -27,21 +28,25 @@ export default function Home({ params }: PageProps) {
     const { session } = useSessionStore();
     const { setLiveQuiz } = useLiveQuizDataStore()
     const { setLiveSession } = useLiveSessionStore();
-    const { participant } = useliveQuizMeParticipantStore()
-    console.log("participant is : ", participant);
+    const { participant, setParticipant } = useliveQuizMeParticipantStore()
+    useWebSocket();
+
+    useEffect(() => {
+        const particiapnt = JSON.parse(localStorage.getItem('participant'));
+        console.log("participant is : ", particiapnt);
+        setParticipant(particiapnt);
+    }, [])
 
     async function onPageHandler() {
-        console.log("call made ");
         if (!session?.user?.token) return;
-        console.log("call made 2");
 
         let url = `${LIVE_QUIZ_URL}/${quizId}`;
         const params = new URLSearchParams();
-        
+
         if (participant?.id) {
             params.append('participantId', participant.id);
         }
-        
+
         if (params.toString()) {
             url += `?${params.toString()}`;
         }

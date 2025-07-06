@@ -3,12 +3,13 @@ import { Clock, FileText, Calendar, MoreVertical, Edit, Trash2, Play, Rocket } f
 import { Dispatch, SetStateAction, useState } from "react";
 import LaunchQuizModal from "./LaunchQuizModal";
 import axios from "axios";
-import { LAUNCH_QUIZ_URL, PUBLISH_QUIZ_URL } from "@/lib/api_routes";
+import { DELETE_QUIZ_URL, LAUNCH_QUIZ_URL, PUBLISH_QUIZ_URL } from "@/lib/api_routes";
 import { useRouter } from "next/navigation";
 import PublishQuizModal from "./PublishQuizModal";
 import { useOwnerQuizsStore } from "@/zustand/ownerQuizsStore";
 import { useToast } from "@/hooks/useToast";
 import PublishedTicker from "../ticker/PublishedTicker";
+import DeleteQuizModal from "./DeleteQuizModal";
 
 interface QuizCardProps {
     quiz: QuizType;
@@ -20,10 +21,44 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [openLaunchQuizModal, setOpenLaunchQuizModal] = useState(false);
     const [openPublishQuizModal, setOpenPublishQuizModal] = useState(false);
+    const [openDeleteQuizModal, setOpenDeleteQuizModal] = useState(false);
     const router = useRouter();
     const { toast } = useToast()
     const [loading, setLoading] = useState<boolean>(false);
-    const { setQuizs } = useOwnerQuizsStore()
+    const { setQuizs, removeQuiz } = useOwnerQuizsStore()
+
+    async function deleteQuizHandler(quizId: string) {
+        if (!quizId || !session.user.token) {
+            toast({
+                title: "Error",
+                description: "Missing quiz ID or authentication token",
+            });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const { data } = await axios.delete(`${DELETE_QUIZ_URL}/${quizId}`, {
+                headers: {
+                    Authorization: `Bearer ${session.user.token}`
+                }
+            })
+
+            if (data.success) {
+                removeQuiz(data.quizId);
+                toast({
+                    title: "Success",
+                    description: data.message || "Quiz deleted successfully",
+                });
+            }
+            setOpen(true);
+        } catch (err) {
+            console.error("Error in publishing the quiz", err);
+        } finally {
+            setLoading(false);
+            setOpenPublishQuizModal(false);
+        }
+    }
 
     async function publishQuizHandler(quizId: string) {
         if (!quizId || !session.user.token) {
@@ -78,6 +113,8 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
             setOpenPublishQuizModal(false);
         }
     }
+
+
 
     async function launchQuizHandler(quizId: string) {
         if (!quizId || !session.user.token) {
@@ -193,7 +230,8 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
                 setOpen(false);
                 break;
             case 'delete':
-                console.log('Delete quiz:', quiz.id);
+                setOpenDeleteQuizModal(true);
+                setOpen(false);
                 break;
             case 'publish':
                 setOpenPublishQuizModal(true);
@@ -338,6 +376,7 @@ export default function QuizCard({ quiz, session, setOpen }: QuizCardProps) {
             </div>
             {openLaunchQuizModal && <LaunchQuizModal setOpen={setOpen} loading={loading} quiz={quiz} setOpenLaunchQuizModal={setOpenLaunchQuizModal} launchQuizHandler={launchQuizHandler} />}
             {openPublishQuizModal && <PublishQuizModal loading={loading} quiz={quiz} setOpenPublishQuizModal={setOpenPublishQuizModal} publishQuizHandler={publishQuizHandler} />}
+            {openDeleteQuizModal && <DeleteQuizModal loading={loading} quiz={quiz} setOpenDeleteQuizModal={setOpenDeleteQuizModal} deleteQuizHandler={deleteQuizHandler} setOpen={setOpen}/>}
         </div>
     );
 }

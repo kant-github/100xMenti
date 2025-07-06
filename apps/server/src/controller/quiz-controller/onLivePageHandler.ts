@@ -33,7 +33,6 @@ export default async function onLivePageHandler(req: Request, res: Response) {
             }
         });
 
-        console.log("live session is : ", liveSession);
         if (!liveSession) {
             res.status(404).json({
                 message: "Live session not found"
@@ -44,7 +43,8 @@ export default async function onLivePageHandler(req: Request, res: Response) {
         const quiz = await prisma.quiz.findUnique({
             where: { id: quizId },
             include: {
-                questions: true
+                questions: true,
+                creator: true
             }
         })
 

@@ -4,6 +4,7 @@ import { QuizType } from "@/types/types";
 interface UseOwnerQuizsStoreProps {
   quizs: QuizType[];
   setQuizs: (data: QuizType | QuizType[] | null) => void;
+  removeQuiz: (data: string) => void;
   resetQuizs: () => void; // optional utility
 }
 
@@ -29,7 +30,10 @@ export const useOwnerQuizsStore = create<UseOwnerQuizsStoreProps>((set, get) => 
 
     set({ quizs: updated });
   },
-
+  removeQuiz: (quizId: string) => {
+    const filtered = get().quizs.filter((quiz) => quiz.id !== quizId);
+    set({ quizs: filtered })
+  },
 
   resetQuizs: () => set({ quizs: [] }),
 }));

@@ -4,6 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import router from './router';
 import cors from 'cors';
+import WebSocketServer from './ws/WebsocketServer';
 dotenv.config({
     path: path.resolve(__dirname, '../.env'),
 });
@@ -15,6 +16,7 @@ app.use(cors({
     origin: '*'
 }))
 const server = http.createServer(app);
+new WebSocketServer(server);
 
 app.use(express.json());
 
@@ -24,3 +26,6 @@ app.use('/api', router);
 server.listen(PORT, () => {
     console.log(`server is listening at port ${PORT}`);
 })
+
+
+

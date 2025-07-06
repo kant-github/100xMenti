@@ -31,6 +31,7 @@ export default class WebSocketServer {
             const newWebSocketId = uuid()
             ws.id = newWebSocketId;
             this.socketMapping.set(newWebSocketId, ws);
+
             ws.on('message', (data: any) => {
                 try {
                     const parsedMessage = JSON.parse(data);
@@ -44,7 +45,6 @@ export default class WebSocketServer {
 
     private handleIncomingMessage(ws: CustomWebSocket, message: any) {
         const { type, payload } = message;
-        console.log("message is : ", message);
         switch (type) {
             case MESSAGE_TYPES.JOIN_QUIZ:
                 this.handleJoinQuiz(ws, payload);
@@ -52,14 +52,24 @@ export default class WebSocketServer {
             case MESSAGE_TYPES.LEAVE_QUIZ:
                 this.handleLeaveQuiz()
                 break;
+            case MESSAGE_TYPES.LIKE:
+                this.handleLike(ws, payload)
+                break;
             default:
                 throw new Error('Unknown type came')
         }
     }
 
     private async handleJoinQuiz(ws: CustomWebSocket, payload: any) {
-        const { participantId, sessionId, quizId } = payload;
+        const { sessionId, quizId } = payload;
         console.log("payload is : ", payload);
+        let participantId: string;
+
+        if (this.isParticipantToken(ws.user)) {
+            participantId = ws.user.participantId;
+        }
+        console.log("participant id is : ", participantId);
+
         if (!sessionId) {
             this.sendError(ws, 'Session code is required');
             return;
@@ -72,12 +82,12 @@ export default class WebSocketServer {
             }
         })
 
+        console.log("quiz is : ", quiz);
+
         let isHost: boolean = false;
         if (this.isHostToken(ws.user)) {
             isHost = quiz.creator_id === String(ws.user.hostId);
         }
-
-        console.log("is host is : ", isHost);
 
         if (isHost) {
             this.handleCreateQuiz(ws, payload)
@@ -115,18 +125,18 @@ export default class WebSocketServer {
     }
 
     private async handleCreateQuiz(ws: CustomWebSocket, payload: any) {
-        // Ensure user is host before proceeding
         if (!this.isHostToken(ws.user)) {
             this.sendError(ws, 'Only hosts can create quiz sessions');
             return;
         }
 
-        const { participantName, avatar, sessionId, quizId } = payload;
+        const { sessionId } = payload;
 
         const liveSession = await prisma.liveSession.findUnique({
             where: { id: sessionId }
         })
 
+        console.log("live session is : ", liveSession);
         if (!liveSession) {
             this.sendError(ws, 'Live session not found');
             return;
@@ -144,10 +154,9 @@ export default class WebSocketServer {
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
         }
-
+        console.log("live session cache data is : ", liveSessionCache);
         await this.redisService.createSession(sessionId, liveSessionCache);
 
-        // Join the host to the room
         this.joinRoom(ws, sessionId);
 
         this.sendToSocket(ws, {
@@ -158,6 +167,7 @@ export default class WebSocketServer {
                 status: liveSession.status,
             }
         })
+        console.log("done");
     }
 
     private async addParticipantToRoom(ws: CustomWebSocket, liveSession: LiveSessionCache, participantId: string) {
@@ -218,11 +228,13 @@ export default class WebSocketServer {
     }
 
     private joinRoom(ws: CustomWebSocket, sessionId: string) {
+        console.log(this.roomMapping.get(sessionId));
         if (!this.roomMapping.get(sessionId)) {
             this.roomMapping.set(sessionId, new Set());
         }
         this.roomMapping.get(sessionId).add(ws.id);
         this.socketToRoom.set(ws.id, sessionId);
+        console.log(this.roomMapping.get(sessionId));
     }
 
     private sendError(ws: CustomWebSocket, message: string) {
@@ -252,6 +264,17 @@ export default class WebSocketServer {
         });
     }
 
+    private handleLike(ws: CustomWebSocket, payload: any) {
+        const { sessionId } = payload;
+
+        this.broadcastToRoom(sessionId, {
+            type: MESSAGE_TYPES.LIKE,
+            payload: {
+                ...payload
+            }
+        }, ws.id)
+    }
+
     private authenticateConnection(ws: CustomWebSocket, request: any): boolean {
         try {
             const url = new URL(request.url, `http://${request.headers.host}`);
@@ -263,6 +286,7 @@ export default class WebSocketServer {
 
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET!) as HostTokenPayload | ParticipantTokenPayload;
+                console.log("decoded is : ----------------------------------> \n", decoded);
                 ws.user = decoded;
                 return true;
             } catch (jwtError) {

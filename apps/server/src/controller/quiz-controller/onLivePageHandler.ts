@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
+import jwt from 'jsonwebtoken';
+import { HostTokenPayload, ParticipantTokenPayload } from "../../types/WebSocketTypes";
 
 export enum UserType {
     HOST = "HOST",
@@ -7,16 +9,11 @@ export enum UserType {
 }
 
 export default async function onLivePageHandler(req: Request, res: Response) {
-    const user = req.user;
-
-    if (!user || !user.id) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
-    }
+    const headers = req.headers.authorization;
+    const token = headers.split(" ")[1];
+    const JWT_SECRET = process.env.JWT_SECRET;
     const { participantId } = req.query;
     const { quizId } = req.params;
-
-
 
     if (!quizId) {
         res.status(400).json({
@@ -26,6 +23,8 @@ export default async function onLivePageHandler(req: Request, res: Response) {
     }
 
     try {
+        const decoded = jwt.verify(token, JWT_SECRET) as HostTokenPayload | ParticipantTokenPayload;
+
         const liveSession = await prisma.liveSession.findFirst({
             where: { quizId },
             include: {
@@ -48,16 +47,21 @@ export default async function onLivePageHandler(req: Request, res: Response) {
             }
         })
 
-        if (liveSession.hostId === String(user.id)) {
-            res.status(200).json({
-                userType: UserType.HOST,
-                liveSession,
-                quiz: quiz
-            });
-            return;
+        // Type guard: Check if it's a host token
+        if (decoded.type === 'host') {
+            // Now TypeScript knows decoded is HostTokenPayload
+            if (liveSession.hostId === String(decoded.hostId)) {
+                res.status(200).json({
+                    userType: UserType.HOST,
+                    liveSession,
+                    quiz: quiz
+                });
+                return;
+            }
         }
 
-        if (participantId) {
+        // Type guard: Check if it's a participant token
+        if (decoded.type === 'participant' && participantId) {
             const participant = liveSession.participants.find(p => p.id === participantId);
             if (participant) {
                 res.status(200).json({

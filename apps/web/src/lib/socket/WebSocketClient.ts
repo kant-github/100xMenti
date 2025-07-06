@@ -36,39 +36,42 @@ export default class WebSocketClient {
     }
 
     private handleIncomingMessage(message: any) {
-        const { type, data } = message;
-
+        const { type, payload } = message;
+        console.log("message is : ", message);
         switch (type) {
             case MESSAGE_TYPES.QUIZ_CREATED:
-                this.emit('quizCreated', data);
+                this.emit('quizCreated', payload);
                 break;
             case MESSAGE_TYPES.JOINED_QUIZ:
-                this.emit('joinedQuiz', data);
+                this.emit('joinedQuiz', payload);
                 break;
             case MESSAGE_TYPES.PARTICIPANT_JOINED:
-                this.emit('participantJoined', data);
+                this.emit('participantJoined', payload);
                 break;
             case MESSAGE_TYPES.PARTICIPANT_LEFT:
-                this.emit('participantLeft', data);
+                this.emit('participantLeft', payload);
                 break;
             case MESSAGE_TYPES.QUESTION_STARTED:
-                this.emit('questionStarted', data);
+                this.emit('questionStarted', payload);
                 break;
             case MESSAGE_TYPES.QUIZ_ENDED:
-                this.emit('quizEnded', data);
+                this.emit('quizEnded', payload);
                 break;
             case MESSAGE_TYPES.ANSWER_SUBMITTED:
-                this.emit('answerSubmitted', data);
+                this.emit('answerSubmitted', payload);
                 break;
             case MESSAGE_TYPES.LEADERBOARD_UPDATE:
-                this.emit('leaderboardUpdate', data);
+                this.emit('leaderboardUpdate', payload);
                 break;
             case MESSAGE_TYPES.ERROR:
-                this.emit('error', data);
+                this.emit('error', payload);
+                break;
+            case MESSAGE_TYPES.LIKE:
+                this.emit(MESSAGE_TYPES.LIKE, payload);
                 break;
             default:
                 console.warn('Unknown message type:', type);
-                this.emit('unknownMessage', { type, data });
+                this.emit('unknownMessage', { type, payload });
         }
 
     }
@@ -78,6 +81,7 @@ export default class WebSocketClient {
     }
 
     private emit(event: string, payload: any) {
+        console.log("handlers are : ", this.eventListeners.get(event));
         if (this.eventListeners.has(event)) {
             this.eventListeners.get(event).forEach((handler) => {
                 try {
@@ -95,6 +99,8 @@ export default class WebSocketClient {
             this.eventListeners.set(event, []);
         }
         this.eventListeners.get(event).push(handler);
+        console.log("adding handler : ", this.eventListeners.get(event));
+        console.log("for event : ", event);
     }
 
     public off(event: string, handler?: Function) {

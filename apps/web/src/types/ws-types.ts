@@ -29,5 +29,7 @@ export enum MESSAGE_TYPES {
     // System
     ERROR = 'ERROR',
     HEARTBEAT = 'HEARTBEAT',
-    SYSTEM_MESSAGE = 'SYSTEM_MESSAGE'
+    SYSTEM_MESSAGE = 'SYSTEM_MESSAGE',
+    
+    LIKE = 'LIKE'
 }

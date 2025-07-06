@@ -20,6 +20,7 @@ export const useWebSocket = () => {
 
     function subscribeToHandler(event: string, handler: (payload: any) => void) {
         if (!webSocketRef.current) return () => { };
+        console.log("added handler");
         return webSocketRef.current.on(event, handler);
     }
 
@@ -46,10 +47,19 @@ export const useWebSocket = () => {
         webSocketRef.current.sendMessage(message);
     }
 
+    function sendLike(data: any) {
+        const message = {
+            type: MESSAGE_TYPES.LIKE,
+            payload: data
+        }
+        webSocketRef.current.sendMessage(message);
+    }
+
     return {
         subscribeToHandler,
         unsubscribeToHandler,
         sendMessage,
-        sendJoinQuizMessage
+        sendJoinQuizMessage,
+        sendLike
     }
 }

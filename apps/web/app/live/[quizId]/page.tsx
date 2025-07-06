@@ -25,21 +25,21 @@ enum UserType {
 export default function Home({ params }: PageProps) {
     const { quizId } = use(params);
     const [type, setType] = useState<UserType>(UserType.UNKNOWN);
-    const { session } = useSessionStore();
-    const { setLiveQuiz } = useLiveQuizDataStore()
+    const { setLiveQuiz } = useLiveQuizDataStore();
     const { setLiveSession } = useLiveSessionStore();
-    const { participant, setParticipant } = useliveQuizMeParticipantStore()
+    const { participant, setParticipant } = useliveQuizMeParticipantStore();
+    const [token, setToken] = useState<string>('');
     useWebSocket();
 
     useEffect(() => {
         const particiapnt = JSON.parse(localStorage.getItem('participant'));
-        console.log("participant is : ", particiapnt);
         setParticipant(particiapnt);
+        const participantToken = sessionStorage.getItem('quiz_token');
+        const hostToken = sessionStorage.getItem('host_token');
+        setToken(hostToken || participantToken);
     }, [])
 
     async function onPageHandler() {
-        if (!session?.user?.token) return;
-
         let url = `${LIVE_QUIZ_URL}/${quizId}`;
         const params = new URLSearchParams();
 
@@ -54,7 +54,7 @@ export default function Home({ params }: PageProps) {
         try {
             const { data } = await axios.get(`${url}`, {
                 headers: {
-                    Authorization: `Bearer ${session.user.token}`
+                    Authorization: `Bearer ${token}`
                 }
             });
             console.log("data user type is : ", data.userType);
@@ -74,8 +74,10 @@ export default function Home({ params }: PageProps) {
     }
 
     useEffect(() => {
-        onPageHandler();
-    }, [session?.user?.token])
+        if (token) {
+            onPageHandler();
+        }
+    }, [token])
 
     return (
         <div>

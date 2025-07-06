@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
-// Types
+
 interface User {
     id: number;
     name: string;
@@ -82,6 +82,7 @@ export default function WaitingLobbyAvatar({
                         src={user.avatar}
                         alt={user.name}
                         fill
+                        priority
                         className="object-cover rounded-full"
                         sizes={`${size + 10}px`}
                     />

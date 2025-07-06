@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import WaitingLobbyAvatar, { Position, User } from '../waiting-lobby/WaitingLobbyAvatar';
 import WaitingLobbyBottomTicker from '../waiting-lobby/WaitingLobbyBottomTicker';
 import { useLiveQuizDataStore } from '@/zustand/liveQuizStore';
@@ -8,10 +8,25 @@ import { useLiveSessionStore } from '@/zustand/liveSession';
 import { Input } from '@/components/ui/input';
 import { useliveQuizMeParticipantStore } from '@/zustand/liveQuizMeParticipant';
 import Image from 'next/image';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function LiveQuizWaitingComponent() {
+
+    const { sendJoinQuizMessage } = useWebSocket();
+    const { liveSession } = useLiveSessionStore()
+
+    useEffect(() => {
+        if (liveSession.id && liveSession.quizId) {
+            const data = {
+                quizId: liveSession.quizId,
+                sessionId: liveSession.id
+            }
+            console.log("data sending to join the quiz is : ", data);
+            sendJoinQuizMessage(data);
+        }
+    }, [liveSession.id, liveSession.quizId])
+
     const { liveQuiz } = useLiveQuizDataStore()
-    const { liveSession } = useLiveSessionStore();
     const { participant } = useliveQuizMeParticipantStore()
     const [users] = useState<User[]>([
         { id: 1, name: "Alice", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-1.jpg" },
@@ -127,7 +142,7 @@ export default function LiveQuizWaitingComponent() {
     const [positions] = useState<Position[]>(() => generatePositions(users.length));
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 ">
+        <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-purple-50 ">
             <div className='grid grid-cols-[70%_30%]'>
                 {/* Left Panel */}
                 <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
@@ -198,20 +213,8 @@ export default function LiveQuizWaitingComponent() {
                     </div>
 
                     <div className='px-6 mb-4 flex flex-col space-y-4'>
-                        <div className='p-4 bg-violet-50 rounded-xl border border-violet-200'>
-                            <div className='flex items-start gap-x-3'>
-                                <Info size={16} className='text-violet-600 mt-0.5' />
-                                <div>
-                                    <h4 className='text-sm font-medium text-violet-900 mb-1'>Before you join</h4>
-                                    <ul className='text-xs text-violet-700 space-y-1'>
-                                        <li>• Make sure you have a stable internet connection</li>
-                                        <li>• Keep this tab active during the quiz</li>
-                                        <li>• Your answers will be submitted automatically</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div className='bg-neutral-800 rounded-xl border border-neutral-300 p-4'>
+
+                        <div className='bg-neutral-800 rounded-xl border border-neutral-300 p-4 shadow-lg'>
                             <label className='block text-sm font-medium text-neutral-100 mb-2'>
                                 Choose your display name
                             </label>
@@ -225,7 +228,19 @@ export default function LiveQuizWaitingComponent() {
                                 value={participant.name}
                             />
                         </div>
-
+                        <div className='p-4 bg-neutral-300 rounded-xl border border-neutral-300'>
+                            <div className='flex items-start gap-x-3'>
+                                <Info size={16} className='text-neutral-600 mt-0.5' />
+                                <div>
+                                    <h4 className='text-sm font-medium text-neutral-900 mb-1'>Before you join</h4>
+                                    <ul className='text-xs text-neutral-700 space-y-1'>
+                                        <li>• Make sure you have a stable internet connection</li>
+                                        <li>• Keep this tab active during the quiz</li>
+                                        <li>• Your answers will be submitted automatically</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 

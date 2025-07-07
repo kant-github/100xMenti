@@ -1,7 +1,7 @@
 import { Server } from "http";
 import { Server as WSServer, WebSocket } from "ws";
 import { v4 as uuid } from "uuid";
-import { CustomWebSocket, HostTokenPayload, MESSAGE_TYPES, ParticipantData, ParticipantTokenPayload, QuizRoom } from "../types/WebSocketTypes";
+import { CustomWebSocket, HostTokenPayload, MESSAGE_TYPES, ParticipantData, ParticipantTokenPayload } from "../types/WebSocketTypes";
 import { prisma } from "../lib/prisma";
 import jwt from 'jsonwebtoken';
 import RedisSessionService from "../service/RedisSessionService";
@@ -12,7 +12,6 @@ export default class WebSocketServer {
     private wss: WSServer;
     private socketMapping: Map<string, CustomWebSocket> = new Map();
     private roomMapping: Map<string, Set<string>> = new Map() // liveSessionID -> Set(socketIds) 
-    private quizMapping: Map<string, QuizRoom> = new Map(); // liveSessionID -> Quiz
     private socketToRoom: Map<string, string> = new Map(); // socketId -> liveSessionID
     private redisService: RedisSessionService;
 
@@ -40,7 +39,35 @@ export default class WebSocketServer {
                     console.log("Error in incoming message");
                 }
             })
+            ws.on('close', () => {
+                this.handleSocketClose(ws);
+            })
         })
+    }
+
+    private handleSocketClose(ws) {
+        try {
+            const socketId = ws.id;
+            const liveSessionId = this.socketToRoom.get(socketId);
+            if (liveSessionId) {
+                this.handleLeaveRoom(ws, liveSessionId);
+            }
+            this.socketMapping.delete(ws.id);
+        } catch (err) {
+
+        }
+    }
+
+    private handleLeaveRoom(ws: CustomWebSocket, liveSessionId: string) {
+        const roomSockets = this.roomMapping.get(liveSessionId);
+
+        if (roomSockets) {
+            roomSockets.delete(ws.id);
+            if (roomSockets.size === 0) {
+                this.roomMapping.delete(liveSessionId);
+            }
+        }
+        this.socketToRoom.delete(ws.id);
     }
 
     private handleIncomingMessage(ws: CustomWebSocket, message: any) {
@@ -62,13 +89,11 @@ export default class WebSocketServer {
 
     private async handleJoinQuiz(ws: CustomWebSocket, payload: any) {
         const { sessionId, quizId } = payload;
-        console.log("payload is : ", payload);
         let participantId: string;
 
         if (this.isParticipantToken(ws.user)) {
             participantId = ws.user.participantId;
         }
-        console.log("participant id is : ", participantId);
 
         if (!sessionId) {
             this.sendError(ws, 'Session code is required');
@@ -81,8 +106,6 @@ export default class WebSocketServer {
                 creator: true
             }
         })
-
-        console.log("quiz is : ", quiz);
 
         let isHost: boolean = false;
         if (this.isHostToken(ws.user)) {

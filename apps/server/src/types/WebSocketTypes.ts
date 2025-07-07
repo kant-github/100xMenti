@@ -48,17 +48,7 @@ export enum MESSAGE_TYPES {
 }
 
 
-export interface QuizRoom {
-    sessionId: string;
-    sessionCode: string;
-    hostId: string;
-    quizId: string;
-    participants: Map<string, ParticipantData>;
-    currentQuestionIndex: number;
-    currentQuestionId: string | null;
-    status: 'WAITING' | 'STARTING' | 'IN_PROGRESS' | 'PAUSED' | 'FINISHED' | 'CANCELLED';
-    questionStartTime: number | null;
-}
+
 
 export interface ParticipantData {
     id: string;

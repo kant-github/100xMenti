@@ -20,11 +20,10 @@ export const useWebSocket = () => {
 
     function subscribeToHandler(event: string, handler: (payload: any) => void) {
         if (!webSocketRef.current) return () => { };
-        console.log("added handler");
         return webSocketRef.current.on(event, handler);
     }
 
-    function unsubscribeToHandler(event: string, handler: (payload: any) => void) {
+    function unSubscribeToHandler(event: string, handler: (payload: any) => void) {
         return webSocketRef.current.off(event, handler);
     }
 
@@ -55,11 +54,20 @@ export const useWebSocket = () => {
         webSocketRef.current.sendMessage(message);
     }
 
+    function sendNameChangeMessage(data: any) {
+        const message = {
+            type: MESSAGE_TYPES.NAME_CHANGE,
+            payload: data
+        }
+        webSocketRef.current.sendMessage(message);
+    }
+
     return {
         subscribeToHandler,
-        unsubscribeToHandler,
+        unSubscribeToHandler,
         sendMessage,
         sendJoinQuizMessage,
-        sendLike
+        sendLike,
+        sendNameChangeMessage
     }
 }

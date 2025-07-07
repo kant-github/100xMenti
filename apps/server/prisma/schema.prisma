@@ -112,7 +112,6 @@ model Participant {
   session   LiveSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   responses QuestionResponse[]
 
-  @@unique([sessionId, name]) // Unique name per session
   @@map("participants")
 }
 

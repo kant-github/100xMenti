@@ -1,12 +1,14 @@
 import Redis from "ioredis";
-import { ParticipantData, QuizRoom } from "../types/WebSocketTypes";
+import { ParticipantData } from "../types/WebSocketTypes";
 import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
+
+const REDIS_URL = process.env.REDIS_URL;
 
 export default class RedisSessionService {
     private redis: Redis
 
     constructor() {
-        this.redis = new Redis('rediss://default:AYEUAAIjcDFlNzMzOWZlMmVlZjA0M2IxYmU1ZWU3MjA4NjAyYzYyOHAxMA@accepted-lamb-33044.upstash.io:6379')
+        this.redis = new Redis(REDIS_URL);
     }
 
     public async createSession(sessionId: string, liveSession: LiveSessionCache) {
@@ -30,7 +32,7 @@ export default class RedisSessionService {
     }
 
     public async getLiveSession(sessionId: string): Promise<LiveSessionCache> {
-        const sessionKey = `session:${sessionId}`
+        const sessionKey = `session:${sessionId}`;
         try {
             const sessionData = await this.redis.hgetall(sessionKey);
             if (!sessionData || Object.keys(sessionData).length === 0) {
@@ -71,6 +73,7 @@ export default class RedisSessionService {
 
     public async addParticipant(sessionId: string, participant: ParticipantDataCache) {
         const participantKey = `session:${sessionId}:participants`
+
         await this.redis.hset(
             participantKey,
             participant.id,

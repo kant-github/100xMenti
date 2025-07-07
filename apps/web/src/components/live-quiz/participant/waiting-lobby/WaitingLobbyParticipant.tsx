@@ -1,19 +1,30 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import WaitingLobbyAvatar, { Position, User } from '../waiting-lobby/WaitingLobbyAvatar';
-import WaitingLobbyBottomTicker from '../waiting-lobby/WaitingLobbyBottomTicker';
+import React, { FormEvent, useEffect, useState } from 'react';
+
 import { useLiveQuizDataStore } from '@/zustand/liveQuizStore';
-import { Clock3, Info, User2 } from 'lucide-react';
+import { ChevronRight, Clock3, Info, User2 } from 'lucide-react';
 import { useLiveSessionStore } from '@/zustand/liveSession';
 import { Input } from '@/components/ui/input';
 import { useliveQuizMeParticipantStore } from '@/zustand/liveQuizMeParticipant';
 import Image from 'next/image';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import WaitingLobbyAvatar, { Position } from './WaitingLobbyAvatar';
+import WaitingLobbyBottomTicker from './WaitingLobbyBottomTicker';
+import { useLiveQuizParticipantsStore } from '@/zustand/liveQuizParticipants';
+import { useToast } from '@/hooks/useToast';
+import { Button } from '@/components/ui/button';
 
-export default function LiveQuizWaitingComponent() {
-
-    const { sendJoinQuizMessage } = useWebSocket();
+export default function WaitingLobbyParticipant() {
+    const { sendJoinQuizMessage, sendNameChangeMessage } = useWebSocket();
     const { liveSession } = useLiveSessionStore()
+    const { liveQuiz } = useLiveQuizDataStore()
+    const { toast } = useToast();
+    const { participant, setParticipant } = useliveQuizMeParticipantStore()
+    const { participants } = useLiveQuizParticipantsStore()
+    const avatarSize = 100;
+    const minDistance = avatarSize + 20;
+    const [participantName, setParticipantName] = useState<string>(participant?.name);
+    console.log("participants are : ", participants);
 
     useEffect(() => {
         if (liveSession.id && liveSession.quizId) {
@@ -21,39 +32,11 @@ export default function LiveQuizWaitingComponent() {
                 quizId: liveSession.quizId,
                 sessionId: liveSession.id
             }
-            console.log("data sending to join the quiz is : ", data);
             sendJoinQuizMessage(data);
         }
     }, [liveSession.id, liveSession.quizId])
 
-    const { liveQuiz } = useLiveQuizDataStore()
-    const { participant } = useliveQuizMeParticipantStore()
-    const [users] = useState<User[]>([
-        { id: 1, name: "Alice", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-1.jpg" },
-        { id: 2, name: "Bob", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-2.jpg" },
-        { id: 3, name: "Charlie", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-3.jpg" },
-        { id: 4, name: "Diana", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-4.jpg" },
-        { id: 5, name: "Eve", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-5.jpg" },
-        { id: 6, name: "Frank", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-6.jpg" },
-        { id: 7, name: "Grace", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-7.jpg" },
-        { id: 8, name: "Henry", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-8.jpg" },
-        { id: 9, name: "Isabel", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-9.jpg" },
-        { id: 10, name: "Jack", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-10.jpg" },
-        { id: 11, name: "Alice", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-1.jpg" },
-        { id: 12, name: "Bob", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-2.jpg" },
-        { id: 13, name: "Charlie", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-3.jpg" },
-        { id: 14, name: "Diana", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-4.jpg" },
-        { id: 15, name: "Eve", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-5.jpg" },
-        { id: 16, name: "Frank", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-6.jpg" },
-        { id: 17, name: "Grace", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-7.jpg" },
-        { id: 18, name: "Henry", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-8.jpg" },
-        { id: 19, name: "Isabel", avatar: "https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-9.jpg" },
-    ]);
-
-    const avatarSize = 100;
-    const minDistance = avatarSize + 20;
-
-    const generatePositions = (total: number): Position[] => {
+    function generatePositions(total: number): Position[] {
         const positions: Position[] = [];
 
         if (total > 0) {
@@ -139,17 +122,48 @@ export default function LiveQuizWaitingComponent() {
         return positions;
     };
 
-    const [positions] = useState<Position[]>(() => generatePositions(users.length));
+    const [positions] = useState<Position[]>(() => generatePositions(participants.length));
+
+
+    function changeName(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (participantName.length < 3) {
+        toast({
+            title: "Your name should contain atleast 3 characters"
+        })
+        return; // Add return to prevent further execution
+    }
+    
+    // Get the current participant from localStorage
+    const participantFromLocalStorage = JSON.parse(localStorage.getItem('participant') || '{}');
+    
+    // Update the name
+    const updatedParticipant = { ...participantFromLocalStorage, name: participantName };
+    
+    // Store back to localStorage with JSON.stringify
+    localStorage.setItem('participant', JSON.stringify(updatedParticipant));
+    
+    // Update the zustand store
+    setParticipant(updatedParticipant);
+    
+    // Send the name change message
+    const payload = {
+        participantId: participant.id,
+        participantName: participantName
+    }
+    sendNameChangeMessage(payload);
+}
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-purple-50 ">
             <div className='grid grid-cols-[70%_30%]'>
                 {/* Left Panel */}
                 <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
-                    {users.map((user, index) => (
+                    {participants.map((p, index) => (
                         <WaitingLobbyAvatar
-                            key={user.id}
-                            user={user}
+                            key={p.id}
+                            avatar={p.avatar}
+                            name={p.name}
                             position={positions[index]}
                             index={index}
                             size={avatarSize}
@@ -157,7 +171,7 @@ export default function LiveQuizWaitingComponent() {
                             showNameTooltip={true}
                         />
                     ))}
-                    <WaitingLobbyBottomTicker users={users} />
+                    <WaitingLobbyBottomTicker participants={participants} />
                 </div>
 
                 {/* Right Panel */}
@@ -209,11 +223,9 @@ export default function LiveQuizWaitingComponent() {
                             </div>
                             <span className='text-sm font-medium text-neutral-500 select-none'>host</span>
                         </div>
-
                     </div>
 
                     <div className='px-6 mb-4 flex flex-col space-y-4'>
-
                         <div className='bg-neutral-800 rounded-xl border border-neutral-300 p-4 shadow-lg'>
                             <label className='block text-sm font-medium text-neutral-100 mb-2'>
                                 Choose your display name
@@ -221,12 +233,23 @@ export default function LiveQuizWaitingComponent() {
                             <p className='text-xs text-neutral-300 mb-3'>
                                 This name will be visible to other participants
                             </p>
-                            <Input
-                                type="text"
-                                placeholder="Choose your name"
-                                className="w-full mt-8 px-5 py-5 text-base rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-900 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-0 focus:shadow-none focus:border-neutral-300 outline-none ring-0"
-                                value={participant.name}
-                            />
+                            <form onSubmit={changeName} className="relative mt-8">
+                                <Input
+                                    type="text"
+                                    placeholder="Choose your name"
+                                    className="w-full px-5 py-5 text-base rounded-xl border border-neutral-300 bg-neutral-50 text-neutral-900 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:border-neutral-300"
+                                    value={participantName}
+                                    onChange={(e) => setParticipantName(e.target.value)}
+                                />
+
+                                <Button
+                                    type="submit"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-neutral-900 text-white rounded-full p-0 flex items-center justify-center shadow-md"
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </Button>
+                            </form>
+
                         </div>
                         <div className='p-4 bg-neutral-300 rounded-xl border border-neutral-300'>
                             <div className='flex items-start gap-x-3'>

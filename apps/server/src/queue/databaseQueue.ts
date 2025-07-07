@@ -3,9 +3,9 @@ import { prisma } from "../lib/prisma";
 import { redisClient } from "../lib/redis";
 import Redis from "ioredis";
 import { QueueJobTypes } from "../types/RedisQueueOperationTypes";
-
+const REDIS_URL = process.env.REDIS_URL;
 const databaseQueue = new Bull('database-operations', {
-    redis: 'rediss://default:AYEUAAIjcDFlNzMzOWZlMmVlZjA0M2IxYmU1ZWU3MjA4NjAyYzYyOHAxMA@accepted-lamb-33044.upstash.io:6379'
+    redis: REDIS_URL
 })
 
 databaseQueue.process(QueueJobTypes.CREATE_PARTICIPANT, async (job) => {
@@ -21,7 +21,7 @@ databaseQueue.process(QueueJobTypes.CREATE_PARTICIPANT, async (job) => {
         })
 
         await redisClient.hset(
-            `sessiom:${liveSessionId}:participants`,
+            `session:${liveSessionId}:participants`,
             participant.id,
             JSON.stringify({
                 ...participant,
@@ -56,13 +56,42 @@ databaseQueue.process(QueueJobTypes.CREATE_QUESTION_RESPONSE, async (job) => {
 
 })
 
+databaseQueue.process(QueueJobTypes.NAME_CHANGE, async (job) => {
+    const { participantId, participantName, sessionId } = job.data;
+    const participantKey = `session:${sessionId}:participants`;
+
+    const participant = await prisma.participant.update({
+        where: {
+            id: participantId
+        }, data: {
+            name: participantName
+        }
+    })
+
+    const currentData = await redisClient.hget(
+        participantKey,
+        participantId,
+    )
+    if (currentData) {
+
+        const participantRedisCache = JSON.parse(currentData);
+        participantRedisCache.name = participantName
+
+        await redisClient.hset(
+            participantKey,
+            participantId,
+            JSON.stringify(participantRedisCache)
+        )
+        await redisClient.expire(participantKey, 24 * 60 * 60);
+    } else {
+        console.log(`Cache miss for participant ${participantId} in session ${sessionId}`);
+    }
+})
+
 
 export class DatabaseQueue {
-    static async createParticipant(liveSessionId: string, participantData: {
-        name: string,
-        avatar: string,
-        socketId: string
-    }) {
+
+    static async createParticipant(liveSessionId: string, participantData: { name: string, avatar: string, socketId: string }) {
         return databaseQueue.add(QueueJobTypes.CREATE_PARTICIPANT,
             {
                 liveSessionId,
@@ -74,4 +103,19 @@ export class DatabaseQueue {
             }
         )
     }
+
+    static updateParticipantName(participantId: string, participantName: string, sessionId: string) {
+        return databaseQueue.add(QueueJobTypes.NAME_CHANGE,
+            {
+                participantId,
+                participantName,
+                sessionId
+            },
+            {
+                attempts: 3,
+                delay: 1000,
+            }
+        )
+    }
+    
 }

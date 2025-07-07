@@ -109,6 +109,9 @@ export default class WebSocketClient {
             case MESSAGE_TYPES.LIKE:
                 this.emit(MESSAGE_TYPES.LIKE, payload);
                 break;
+                case MESSAGE_TYPES.NAME_CHANGE:
+                this.emit(MESSAGE_TYPES.NAME_CHANGE, payload);
+                break;
             default:
                 console.warn('Unknown message type:', type);
                 this.emit('unknownMessage', { type, payload });
@@ -116,7 +119,6 @@ export default class WebSocketClient {
     }
 
     private emit(event: string, payload: any) {
-        console.log("handlers are : ", this.eventListeners.get(event));
         if (this.eventListeners.has(event)) {
             this.eventListeners.get(event).forEach((handler) => {
                 try {

@@ -16,7 +16,8 @@ interface Position {
 }
 
 interface AvatarProps {
-    user: User;
+    avatar: string;
+    name: string;
     position: Position;
     index: number;
     size?: number;
@@ -26,7 +27,8 @@ interface AvatarProps {
 }
 
 export default function WaitingLobbyAvatar({
-    user,
+    avatar,
+    name,
     position,
     index,
     size = 100,
@@ -79,8 +81,8 @@ export default function WaitingLobbyAvatar({
                 {/* Avatar with enhanced styling */}
                 <div className="w-full h-full rounded-full overflow-hidden shadow-2xl border-4 border-white bg-white ring-4 ring-blue-100/60 hover:ring-blue-200/80 transition-all duration-300">
                     <Image
-                        src={user.avatar}
-                        alt={user.name}
+                        src={avatar}
+                        alt={name}
                         fill
                         priority
                         className="object-cover rounded-full"
@@ -101,7 +103,7 @@ export default function WaitingLobbyAvatar({
                         className="absolute -top-14 left-1/2 transform -translate-x-1/2 whitespace-nowrap pointer-events-none hidden group-hover:block"
                     >
                         <span className="text-gray-800 font-medium text-sm bg-white px-4 py-2 rounded-full shadow-xl border border-gray-200">
-                            {user.name}
+                            {name}
                         </span>
                     </div>
                 )}

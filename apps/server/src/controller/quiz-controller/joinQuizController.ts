@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 import jwt from 'jsonwebtoken'
+import GenerateUser from "../../lib/generateUser";
 export default async function joinQuizController(req: Request, res: Response) {
 
     const { sessionCode } = req.params;
@@ -24,7 +25,10 @@ export default async function joinQuizController(req: Request, res: Response) {
     try {
         const liveSession = await prisma.liveSession.findUnique({
             where: { sessionCode },
-            include: { quiz: true }
+            include: {
+                quiz: true,
+                participants: true
+            },
         });
 
         if (!liveSession) {
@@ -34,8 +38,8 @@ export default async function joinQuizController(req: Request, res: Response) {
 
         const participant = await prisma.participant.create({
             data: {
-                name: `User-${Date.now()}`,
-                avatar: 'https://s3.eu-north-1.amazonaws.com/bucket.kant/avatars/avatar-1.jpg',
+                name: GenerateUser.getRandomName(),
+                avatar: GenerateUser.getRandomAvatar(),
                 isActive: false,
                 sessionId: liveSession.id
             }
@@ -65,6 +69,7 @@ export default async function joinQuizController(req: Request, res: Response) {
                 name: participant.name,
                 avatar: participant.avatar
             },
+
             session: {
                 id: liveSession.id,
                 code: liveSession.sessionCode,
@@ -83,5 +88,4 @@ export default async function joinQuizController(req: Request, res: Response) {
         });
         return;
     }
-
 }

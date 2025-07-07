@@ -60,7 +60,7 @@ export default async function onLivePageHandler(req: Request, res: Response) {
             }
         }
 
-        // Type guard: Check if it's a participant token
+        console.log("live session is : ", liveSession);
         if (decoded.type === 'participant' && participantId) {
             const participant = liveSession.participants.find(p => p.id === participantId);
             if (participant) {

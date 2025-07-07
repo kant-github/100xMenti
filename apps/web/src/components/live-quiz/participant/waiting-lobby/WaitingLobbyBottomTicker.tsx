@@ -1,13 +1,13 @@
 import Image from "next/image";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { User } from "./WaitingLobbyAvatar";
 import { BsFillHandThumbsUpFill } from "react-icons/bs";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { MESSAGE_TYPES } from "@/types/ws-types";
 import { useLiveSessionStore } from "@/zustand/liveSession";
+import { ParticipantType } from "@/types/types";
 
-export default function WaitingLobbyBottomTicker({ users }: { users: User[] }) {
+export default function WaitingLobbyBottomTicker({ participants }: { participants: ParticipantType[] }) {
     const [animatingThumbs, setAnimatingThumbs] = useState<number[]>([]);
     const [isHolding, setIsHolding] = useState(false);
     const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -19,7 +19,6 @@ export default function WaitingLobbyBottomTicker({ users }: { users: User[] }) {
 
     function handleIncomingLike(newMessage: any) {
         console.log("incoming like message", newMessage);
-        // Create animation for incoming likes from other users
         createThumbAnimation();
     }
 
@@ -27,7 +26,6 @@ export default function WaitingLobbyBottomTicker({ users }: { users: User[] }) {
         const newThumbId = Date.now() + Math.random(); // Ensure unique IDs
         setAnimatingThumbs(prev => [...prev, newThumbId]);
 
-        // Remove the thumb after animation completes
         setTimeout(() => {
             setAnimatingThumbs(prev => prev.filter(id => id !== newThumbId));
         }, 2200);
@@ -83,20 +81,20 @@ export default function WaitingLobbyBottomTicker({ users }: { users: User[] }) {
             <div className="bg-white/85 backdrop-blur-sm rounded-full px-8 py-4 shadow-xl border border-gray-200">
                 <div className="flex items-center gap-4">
                     <div className="flex -space-x-2">
-                        {users.slice(0, 3).map((user) => (
-                            <div key={user.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                        {participants.slice(0, 3).map((participant) => (
+                            <div key={participant.id} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
                                 <Image
-                                    src={user.avatar}
-                                    alt={user.name}
+                                    src={participant.avatar}
+                                    alt={participant.name}
                                     width={32}
                                     height={32}
                                     className="object-cover w-full h-full"
                                 />
                             </div>
                         ))}
-                        {users.length > 3 && (
+                        {participants.length > 3 && (
                             <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-                                +{users.length - 3}
+                                +{participants.length - 3}
                             </div>
                         )}
                     </div>

@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import RedisSessionService from "../service/RedisSessionService";
 import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
 import { SessionStatus } from "@prisma/client";
+import { DatabaseQueue } from "../queue/databaseQueue";
 
 export default class WebSocketServer {
     private wss: WSServer;
@@ -14,6 +15,7 @@ export default class WebSocketServer {
     private roomMapping: Map<string, Set<string>> = new Map() // liveSessionID -> Set(socketIds) 
     private socketToRoom: Map<string, string> = new Map(); // socketId -> liveSessionID
     private redisService: RedisSessionService;
+    private databaseQueue = DatabaseQueue;
 
     constructor(server: Server) {
         this.wss = new WSServer({ server });
@@ -82,8 +84,47 @@ export default class WebSocketServer {
             case MESSAGE_TYPES.LIKE:
                 this.handleLike(ws, payload)
                 break;
+            case MESSAGE_TYPES.NAME_CHANGE:
+                this.handleNameChange(ws, payload)
+                break;
             default:
                 throw new Error('Unknown type came')
+        }
+    }
+
+    private async handleNameChange(ws: CustomWebSocket, payload: any) {
+        const { participantId, participantName } = payload;
+        console.log("payload is : ", payload);
+        if (ws.user.type !== 'participant') {
+            this.sendError(ws, 'Only participants can change names');
+            return;
+        }
+
+        if (ws.user.participantId !== participantId) {
+            this.sendError(ws, 'Unauthorized');
+            return;
+        }
+
+        const sessionId = this.socketToRoom.get(ws.id);
+        if (!sessionId) {
+            this.sendError(ws, 'Session not found');
+            return;
+        }
+
+        if (!participantName || typeof participantName !== 'string' || participantName.trim().length === 0) {
+            this.sendError(ws, 'Invalid participant name');
+            return;
+        }
+
+        try {
+            await DatabaseQueue.updateParticipantName(participantId, participantName.trim(), sessionId);
+            this.broadcastToRoom(sessionId, {
+                type: MESSAGE_TYPES.NAME_CHANGE,
+                payload
+            })
+        } catch (error) {
+            console.error('Failed to queue name change:', error);
+            this.sendError(ws, 'Failed to update name');
         }
     }
 
@@ -94,7 +135,6 @@ export default class WebSocketServer {
         if (this.isParticipantToken(ws.user)) {
             participantId = ws.user.participantId;
         }
-
         if (!sessionId) {
             this.sendError(ws, 'Session code is required');
             return;
@@ -159,7 +199,6 @@ export default class WebSocketServer {
             where: { id: sessionId }
         })
 
-        console.log("live session is : ", liveSession);
         if (!liveSession) {
             this.sendError(ws, 'Live session not found');
             return;
@@ -177,7 +216,6 @@ export default class WebSocketServer {
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
         }
-        console.log("live session cache data is : ", liveSessionCache);
         await this.redisService.createSession(sessionId, liveSessionCache);
 
         this.joinRoom(ws, sessionId);
@@ -205,7 +243,7 @@ export default class WebSocketServer {
             }
 
             const newParticipant: ParticipantDataCache = {
-                id: uuid(),
+                id: participantId,
                 name: participant.name,
                 avatar: participant.avatar,
                 socketId: ws.id,
@@ -251,13 +289,11 @@ export default class WebSocketServer {
     }
 
     private joinRoom(ws: CustomWebSocket, sessionId: string) {
-        console.log(this.roomMapping.get(sessionId));
         if (!this.roomMapping.get(sessionId)) {
             this.roomMapping.set(sessionId, new Set());
         }
         this.roomMapping.get(sessionId).add(ws.id);
         this.socketToRoom.set(ws.id, sessionId);
-        console.log(this.roomMapping.get(sessionId));
     }
 
     private sendError(ws: CustomWebSocket, message: string) {
@@ -309,7 +345,6 @@ export default class WebSocketServer {
 
             try {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET!) as HostTokenPayload | ParticipantTokenPayload;
-                console.log("decoded is : ----------------------------------> \n", decoded);
                 ws.user = decoded;
                 return true;
             } catch (jwtError) {

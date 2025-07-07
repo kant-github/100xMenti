@@ -1,15 +1,16 @@
 import { SessionStatus } from "@/types/types";
 import { useLiveSessionStore } from "@/zustand/liveSession";
-import LiveQuizWaitingComponent from "../live-quiz/LiveQuizComponents/LiveQuizWaitingComponent";
-import LiveQuizQuestionActiveComponent from "../live-quiz/LiveQuizComponents/LiveQuizQuestionActiveComponent";
+import LiveQuizQuestionActiveComponent from "../../LiveQuizComponents/LiveQuizQuestionActiveComponent";
+import WaitingLobbyParticipant from "../waiting-lobby/WaitingLobbyParticipant";
 
-export default function ParticipantsLivePanel() {
+
+export default function ParticipantPannelRenderer() {
     const { liveSession } = useLiveSessionStore();
 
     function renderComponent() {
         switch (liveSession.status) {
             case SessionStatus.WAITING:
-                return <LiveQuizWaitingComponent />
+                return <WaitingLobbyParticipant />
             case SessionStatus.QUESTION_ACTIVE:
                 return <LiveQuizQuestionActiveComponent />
         }

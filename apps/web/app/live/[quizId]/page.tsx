@@ -1,12 +1,13 @@
 'use client'
-import HostLivePanel from "@/components/live-quiz/host/HostLivePanel";
-import ParticipantsLivePanel from "@/components/panels/ParticipantsLivePanel";
+import HostPannelRenderer from "@/components/live-quiz/host/panel/HostPanelRenderer";
+import ParticipantPannelRenderer from "@/components/live-quiz/participant/panel/ParticipantPannelRenderer";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useSubscribeToHandlers } from "@/hooks/useSubscribeToHandlers";
 import { LIVE_QUIZ_URL } from "@/lib/api_routes";
 import { useliveQuizMeParticipantStore } from "@/zustand/liveQuizMeParticipant";
+import { useLiveQuizParticipantsStore } from "@/zustand/liveQuizParticipants";
 import { useLiveQuizDataStore } from "@/zustand/liveQuizStore";
 import { useLiveSessionStore } from "@/zustand/liveSession";
-import { useSessionStore } from "@/zustand/sessionZustand";
 import axios from "axios";
 import { use, useEffect, useState } from "react"
 
@@ -25,15 +26,16 @@ enum UserType {
 export default function Home({ params }: PageProps) {
     const { quizId } = use(params);
     const [type, setType] = useState<UserType>(UserType.UNKNOWN);
-    const { setLiveQuiz } = useLiveQuizDataStore();
-    const { setLiveSession } = useLiveSessionStore();
     const { participant, setParticipant } = useliveQuizMeParticipantStore();
     const [token, setToken] = useState<string>('');
+    const { setLiveQuiz } = useLiveQuizDataStore();
+    const { setLiveSession } = useLiveSessionStore();
+    const { setParticipants } = useLiveQuizParticipantsStore()
     useWebSocket();
-
+    useSubscribeToHandlers();
     useEffect(() => {
-        const particiapnt = JSON.parse(localStorage.getItem('participant'));
-        setParticipant(particiapnt);
+        const participant = JSON.parse(localStorage.getItem('participant'));
+        setParticipant(participant);
         const participantToken = sessionStorage.getItem('quiz_token');
         const hostToken = sessionStorage.getItem('host_token');
         setToken(hostToken || participantToken);
@@ -57,16 +59,17 @@ export default function Home({ params }: PageProps) {
                     Authorization: `Bearer ${token}`
                 }
             });
-            console.log("data user type is : ", data.userType);
-
+            console.log("data fetched from backend is : ", data);
             if (data.userType === 'HOST') {
                 setType(UserType.HOST);
                 setLiveQuiz(data.quiz);
                 setLiveSession(data.liveSession);
+                setParticipants(data.liveSession.participants);
             } else if (data.userType === 'PARTICIPANT') {
                 setType(UserType.USER)
                 setLiveQuiz(data.quiz);
                 setLiveSession(data.liveSession);
+                setParticipants(data.liveSession.participants);
             }
         } catch (err) {
             console.error("Error in on page handler", err);
@@ -82,8 +85,8 @@ export default function Home({ params }: PageProps) {
     return (
         <div>
             {type === UserType.UNKNOWN && <div>loading</div>}
-            {type === UserType.HOST && <HostLivePanel />}
-            {type === UserType.USER && <ParticipantsLivePanel />}
+            {type === UserType.HOST && <HostPannelRenderer />}
+            {type === UserType.USER && <ParticipantPannelRenderer />}
         </div>
     )
 }

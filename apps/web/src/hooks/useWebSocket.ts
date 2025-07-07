@@ -29,13 +29,11 @@ export const useWebSocket = () => {
 
     function sendMessage(message: any) {
         if (!webSocketRef.current) return;
-
         webSocketRef.current.sendMessage(message);
     }
 
     function sendJoinQuizMessage(data: any) {
         if (!data || !webSocketRef.current) {
-            console.log("returning");
             return
         };
 

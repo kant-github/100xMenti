@@ -7,7 +7,6 @@ export const useSubscribeToHandlers = () => {
     const { subscribeToHandler, unSubscribeToHandler } = useWebSocket();
     const { updateParticipant } = useLiveQuizParticipantsStore();
     function handleIncomingNameChangeHandler(newMessage: any) {
-        console.log("name change messageis : ", newMessage);
         const { participantId, participantName } = newMessage;
         updateParticipant(participantId, { name: participantName });
     }

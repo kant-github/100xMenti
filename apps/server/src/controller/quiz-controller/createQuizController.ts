@@ -11,14 +11,11 @@ export default async function createQuizController(req: Request, res: Response) 
             newQuizId
         } = req.body;
 
-        console.log(req.body);
-
         const user = req.user;
         if (!user || !user.id) {
             res.status(401).json({ message: "Unauthorized" });
             return;
         }
-        console.log("user id is : ", user.id);
         const result = await prisma.$transaction(async (tx) => {
             
             const existingQuiz = await tx.quiz.findUnique({

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 
 export default async function getQuizController(req: Request, res: Response) {
-    console.log('hit getQuizController');
     try {
         const user = req.user;
 

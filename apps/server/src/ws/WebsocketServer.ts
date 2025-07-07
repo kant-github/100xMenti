@@ -94,7 +94,6 @@ export default class WebSocketServer {
 
     private async handleNameChange(ws: CustomWebSocket, payload: any) {
         const { participantId, participantName } = payload;
-        console.log("payload is : ", payload);
         if (ws.user.type !== 'participant') {
             this.sendError(ws, 'Only participants can change names');
             return;
@@ -228,7 +227,6 @@ export default class WebSocketServer {
                 status: liveSession.status,
             }
         })
-        console.log("done");
     }
 
     private async addParticipantToRoom(ws: CustomWebSocket, liveSession: LiveSessionCache, participantId: string) {

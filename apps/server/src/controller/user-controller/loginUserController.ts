@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 
 export default async function loginUserController(req: Request, res: Response) {
     const { user, account } = req.body;
-    console.log("user : ", user);
     try {
         const existingUser = await prisma.user.findUnique({
             where: {
@@ -43,10 +42,7 @@ export default async function loginUserController(req: Request, res: Response) {
             id: myUser.id,
         };
         const secret = process.env.JWT_SECRET
-        console.log("secret loaded : ", secret);
         const token = jwt.sign(jwtPayload, secret);
-        console.log("token is : ", token);
-        console.log("my user is : ", myUser);
         res.json({
             success: true,
             user: myUser,

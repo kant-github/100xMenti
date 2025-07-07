@@ -12,7 +12,6 @@ export default async function onLivePageHandler(req: Request, res: Response) {
     const headers = req.headers.authorization;
     const token = headers.split(" ")[1];
     const JWT_SECRET = process.env.JWT_SECRET;
-    const { participantId } = req.query;
     const { quizId } = req.params;
 
     if (!quizId) {
@@ -47,6 +46,7 @@ export default async function onLivePageHandler(req: Request, res: Response) {
             }
         })
 
+
         // Type guard: Check if it's a host token
         if (decoded.type === 'host') {
             // Now TypeScript knows decoded is HostTokenPayload
@@ -60,14 +60,14 @@ export default async function onLivePageHandler(req: Request, res: Response) {
             }
         }
 
-        console.log("live session is : ", liveSession);
-        if (decoded.type === 'participant' && participantId) {
-            const participant = liveSession.participants.find(p => p.id === participantId);
+        if (decoded.type === 'participant') {
+            const participant = liveSession.participants.find(p => p.id === decoded.participantId);
             if (participant) {
                 res.status(200).json({
                     userType: UserType.PARTICIPANT,
                     liveSession,
-                    quiz: quiz
+                    quiz: quiz,
+                    participant
                 });
                 return;
             }

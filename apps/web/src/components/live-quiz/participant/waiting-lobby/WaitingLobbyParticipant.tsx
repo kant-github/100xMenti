@@ -24,7 +24,6 @@ export default function WaitingLobbyParticipant() {
     const avatarSize = 100;
     const minDistance = avatarSize + 20;
     const [participantName, setParticipantName] = useState<string>(participant?.name);
-    console.log("participants are : ", participants);
 
     useEffect(() => {
         if (liveSession.id && liveSession.quizId) {
@@ -131,22 +130,14 @@ export default function WaitingLobbyParticipant() {
         toast({
             title: "Your name should contain atleast 3 characters"
         })
-        return; // Add return to prevent further execution
+        return;
     }
     
-    // Get the current participant from localStorage
     const participantFromLocalStorage = JSON.parse(localStorage.getItem('participant') || '{}');
-    
-    // Update the name
     const updatedParticipant = { ...participantFromLocalStorage, name: participantName };
-    
-    // Store back to localStorage with JSON.stringify
     localStorage.setItem('participant', JSON.stringify(updatedParticipant));
     
-    // Update the zustand store
     setParticipant(updatedParticipant);
-    
-    // Send the name change message
     const payload = {
         participantId: participant.id,
         participantName: participantName

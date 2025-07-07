@@ -23,7 +23,6 @@ export default class WebSocketClient {
             this.isConnected = true;
             this.reconnectAttempts = 0;
             this.reconnectDelay = 1000;
-            console.log('WebSocket connected');
             this.flushMessageQueue();
             this.emit('connected', null);
         }
@@ -39,8 +38,7 @@ export default class WebSocketClient {
 
         this.ws.onclose = (event) => {
             this.isConnected = false;
-            console.log('WebSocket closed:', event.code, event.reason);
-            
+
             if (this.reconnectTimeout) {
                 clearTimeout(this.reconnectTimeout);
                 this.reconnectTimeout = null;
@@ -64,20 +62,18 @@ export default class WebSocketClient {
 
     private attemptReconnect() {
         this.reconnectAttempts++;
-        console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        
+
         this.reconnectTimeout = setTimeout(() => {
             this.connect();
         }, this.reconnectDelay);
 
         this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000);
-        
+
         this.emit('reconnecting', { attempt: this.reconnectAttempts });
     }
 
     private handleIncomingMessage(message: any) {
         const { type, payload } = message;
-        console.log("message is : ", message);
         switch (type) {
             case MESSAGE_TYPES.QUIZ_CREATED:
                 this.emit(MESSAGE_TYPES.QUIZ_CREATED, payload);
@@ -109,7 +105,7 @@ export default class WebSocketClient {
             case MESSAGE_TYPES.LIKE:
                 this.emit(MESSAGE_TYPES.LIKE, payload);
                 break;
-                case MESSAGE_TYPES.NAME_CHANGE:
+            case MESSAGE_TYPES.NAME_CHANGE:
                 this.emit(MESSAGE_TYPES.NAME_CHANGE, payload);
                 break;
             default:
@@ -135,8 +131,7 @@ export default class WebSocketClient {
             this.eventListeners.set(event, []);
         }
         this.eventListeners.get(event).push(handler);
-        console.log("adding handler : ", this.eventListeners.get(event));
-        console.log("for event : ", event);
+
     }
 
     public off(event: string, handler?: Function) {
@@ -158,7 +153,6 @@ export default class WebSocketClient {
         if (this.isConnected && this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
         } else {
-            console.log("pushing to message queue");
             this.messageQueue.push(message);
         }
     }
@@ -183,7 +177,7 @@ export default class WebSocketClient {
 
     public getConnectionState(): string {
         if (!this.ws) return 'CLOSED';
-        
+
         switch (this.ws.readyState) {
             case WebSocket.CONNECTING: return 'CONNECTING';
             case WebSocket.OPEN: return 'OPEN';

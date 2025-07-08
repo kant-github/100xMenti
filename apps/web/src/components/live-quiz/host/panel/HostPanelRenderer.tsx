@@ -7,7 +7,6 @@ import LiveSessionCodeTicker from "@/components/ticker/LiveSessionCodeTicker";
 import { useHostEventSubscriptions } from "@/hooks/useHostEventSubscriptions";
 import WaitingLobbyHost from "../waitng-lobby/WaitingLobbyHost";
 
-
 export default function HostPannelRenderer() {
     const { liveSession } = useLiveSessionStore();
     const { sendJoinQuizMessage } = useWebSocket();
@@ -22,8 +21,6 @@ export default function HostPannelRenderer() {
             sendJoinQuizMessage(data);
         }
     }, [liveSession.id, liveSession.quizId])
-
-
 
     function renderComponent() {
         switch (liveSession.currentScreen) {

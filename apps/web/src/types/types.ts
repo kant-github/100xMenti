@@ -111,7 +111,7 @@ export interface ParticipantType {
   isNameChanged: boolean;
   avatar?: string | null;
   isActive: boolean;
-  joinedAt: Date;
+  joinedAt: string;
   leftAt?: Date | null;
   totalScore: number;
   correctCount: number;
@@ -119,7 +119,6 @@ export interface ParticipantType {
   sessionId: string;
   session?: LiveSessionType;
   responses?: QuestionResponseType[];
-
 }
 
 export interface QuestionResponseType {

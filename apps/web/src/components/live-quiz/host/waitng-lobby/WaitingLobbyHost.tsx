@@ -1,24 +1,7 @@
 'use client';
-import { useEffect } from 'react';
-
-import { useLiveSessionStore } from '@/zustand/liveSession';
-import { useWebSocket } from '@/hooks/useWebSocket';
 import WaitingLobbyLeftCommon from '../../common/WaitingLobbyLeftCommon';
 
 export default function WaitingLobbyHost() {
-    const { sendJoinQuizMessage, sendNameChangeMessage } = useWebSocket();
-    const { liveSession } = useLiveSessionStore()
-
-    useEffect(() => {
-        if (liveSession.id && liveSession.quizId) {
-            const data = {
-                quizId: liveSession.quizId,
-                sessionId: liveSession.id
-            }
-            sendJoinQuizMessage(data);
-        }
-    }, [liveSession.id, liveSession.quizId])
-
     return (
         <div className="min-h-screen bg-neutral-100">
             <div className='grid grid-cols-[70%_30%]'>

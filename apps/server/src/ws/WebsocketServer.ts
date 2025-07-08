@@ -219,7 +219,7 @@ export default class WebSocketServer {
         await this.redisService.createSession(sessionId, liveSessionCache);
 
         this.joinRoom(ws, sessionId);
-        
+
         console.log("quiz sending and the data is : ", {
             sessionId: liveSession.id,
             sessionCode: liveSession.sessionCode,
@@ -278,6 +278,7 @@ export default class WebSocketServer {
             this.broadcastToRoom(liveSession.sessionId, {
                 type: MESSAGE_TYPES.PARTICIPANT_JOINED,
                 payload: {
+                    liveSessionId: liveSession.sessionId,
                     participantId: newParticipant.id,
                     avatar: newParticipant.avatar,
                     name: newParticipant.name

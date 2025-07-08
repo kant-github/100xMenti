@@ -1,13 +1,14 @@
 import { useLiveQuizParticipantsStore } from "@/zustand/liveQuizParticipants";
 import WaitingLobbyAvatar, { Position } from "../participant/waiting-lobby/WaitingLobbyAvatar";
 import WaitingLobbyBottomTicker from "../participant/waiting-lobby/WaitingLobbyBottomTicker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function WaitingLobbyLeftCommon() {
     const { participants } = useLiveQuizParticipantsStore()
 
     const avatarSize = 100;
     const minDistance = avatarSize + 20;
+    
     function generatePositions(total: number): Position[] {
         const positions: Position[] = [];
 
@@ -94,21 +95,34 @@ export default function WaitingLobbyLeftCommon() {
         return positions;
     };
 
-    const [positions] = useState<Position[]>(() => generatePositions(participants.length));
+    const [positions, setPositions] = useState<Position[]>(() => generatePositions(participants.length));
+
+    useEffect(() => {
+        setPositions(generatePositions(participants.length));
+    }, [participants.length]);
+
     return (
         <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
-            {participants.map((p, index) => (
-                <WaitingLobbyAvatar
-                    key={p.id}
-                    avatar={p.avatar}
-                    name={p.name}
-                    position={positions[index]}
-                    index={index}
-                    size={avatarSize}
-                    showOnlineIndicator={true}
-                    showNameTooltip={true}
-                />
-            ))}
+            {participants.map((p, index) => {
+                const position = positions[index];
+                if (!position) {
+                    console.warn(`Position not found for participant ${p.id} at index ${index}`);
+                    return null;
+                }
+               
+                return (
+                    <WaitingLobbyAvatar
+                        key={p.id}
+                        avatar={p.avatar}
+                        name={p.name}
+                        position={position}
+                        index={index}
+                        size={avatarSize}
+                        showOnlineIndicator={true}
+                        showNameTooltip={true}
+                    />
+                );
+            })}
             <WaitingLobbyBottomTicker participants={participants} />
         </div>
     )

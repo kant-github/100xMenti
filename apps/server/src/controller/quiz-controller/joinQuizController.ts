@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 import jwt from 'jsonwebtoken'
-import GenerateUser from "../../lib/generateUser";
+import GenerateUser from "../../lib/GenerateUser";
 export default async function joinQuizController(req: Request, res: Response) {
 
     const { sessionCode } = req.params;

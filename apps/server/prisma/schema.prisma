@@ -68,11 +68,13 @@ model Question {
 }
 
 model LiveSession {
-  id                   String        @id @default(cuid())
-  sessionCode          String        @unique // 6-digit join code
-  status               SessionStatus @default(WAITING)
+  id            String        @id @default(cuid())
+  sessionCode   String        @unique // 6-digit join code
+  status        SessionStatus @default(PENDING)
+  currentScreen CurrentScreen @default(LOBBY)
+
   currentQuestionId    String?
-  currentQuestionIndex Int           @default(0)
+  currentQuestionIndex Int     @default(0)
 
   // Settings for this session
   showLeaderboard Boolean @default(true)
@@ -95,12 +97,13 @@ model LiveSession {
 }
 
 model Participant {
-  id       String    @id @default(cuid())
-  name     String
-  avatar   String? // Optional avatar selection
-  isActive Boolean   @default(true)
-  joinedAt DateTime  @default(now())
-  leftAt   DateTime?
+  id            String    @id @default(cuid())
+  name          String
+  avatar        String?
+  isActive      Boolean   @default(true)
+  joinedAt      DateTime  @default(now())
+  leftAt        DateTime?
+  isNameChanged Boolean   @default(false)
 
   // Score tracking
   totalScore     Int @default(0)
@@ -151,13 +154,18 @@ enum QuestionType {
 }
 
 enum SessionStatus {
-  WAITING // Waiting for participants to join
-  STARTING // Countdown before first question
-  IN_PROGRESS // Quiz is active
-  PAUSED // Temporarily paused
-  FINISHED // Quiz completed
-  CANCELLED // Session cancelled
-  QUESTION_TRANSITION
-  QUESTION_ACTIVE
-  QUESTION_ENDED
+  PENDING // Session created but not started
+  LIVE // Quiz is currently active
+  PAUSED // Temporarily paused by host
+  COMPLETED // Quiz finished normally
+  CANCELLED // Session cancelled/terminated
+}
+
+enum CurrentScreen {
+  LOBBY // Waiting room before quiz starts
+  COUNTDOWN // 3-2-1 countdown before question
+  QUESTION_ACTIVE // Question is being displayed and accepting answers
+  QUESTION_RESULTS // Show correct answer and explanations
+  LEADERBOARD // Show current standings
+  FINAL_RESULTS // Show final quiz results
 }

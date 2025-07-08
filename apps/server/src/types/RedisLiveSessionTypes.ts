@@ -1,4 +1,4 @@
-import { SessionStatus } from "@prisma/client";
+import { CurrentScreen, SessionStatus } from "@prisma/client";
 
 export interface LiveSessionCache {
     sessionId: string;
@@ -8,9 +8,10 @@ export interface LiveSessionCache {
     currentQuestionIndex: number;
     currentQuestionId?: string | null;
     status: SessionStatus;
+    currentScreen: CurrentScreen
     allowLateJoin: boolean,
     questionStartTime?: Date | null;
-    participants?: Map<string, ParticipantDataCache>; // Make optional since you're commenting it out
+    participants?: Map<string, ParticipantDataCache>;
     createdAt?: Date;
 }
 

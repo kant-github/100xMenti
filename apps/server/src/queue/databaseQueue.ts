@@ -60,11 +60,21 @@ databaseQueue.process(QueueJobTypes.NAME_CHANGE, async (job) => {
     const { participantId, participantName, sessionId } = job.data;
     const participantKey = `session:${sessionId}:participants`;
 
-    const participant = await prisma.participant.update({
+
+    const participant = await prisma.participant.findUnique({
+        where: {
+            id: participantId
+        }
+    })
+
+    if (participant.isNameChanged) return;
+
+    await prisma.participant.update({
         where: {
             id: participantId
         }, data: {
-            name: participantName
+            name: participantName,
+            isNameChanged: true
         }
     })
 
@@ -117,5 +127,5 @@ export class DatabaseQueue {
             }
         )
     }
-    
+
 }

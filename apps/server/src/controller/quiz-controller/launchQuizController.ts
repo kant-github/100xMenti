@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import generateRandom6digitCode from "../../lib/generateRandom6digitCode";
 import { prisma } from "../../lib/prisma";
+import { SessionStatus, CurrentScreen } from "@prisma/client";
 import jwt from 'jsonwebtoken';
 
 export default async function launchQuizController(req: Request, res: Response) {
@@ -51,11 +52,12 @@ export default async function launchQuizController(req: Request, res: Response) 
             return;
         }
 
+        // Check for existing active sessions using new enum structure
         const existingSession = await prisma.liveSession.findFirst({
             where: {
                 quizId: quizId,
                 status: {
-                    in: ['WAITING', 'STARTING', 'IN_PROGRESS', 'PAUSED']
+                    in: [SessionStatus.PENDING, SessionStatus.LIVE, SessionStatus.PAUSED]
                 }
             }
         });
@@ -73,7 +75,8 @@ export default async function launchQuizController(req: Request, res: Response) 
         const liveSession = await prisma.liveSession.create({
             data: {
                 sessionCode: getNewSessionCode,
-                status: 'WAITING',
+                status: SessionStatus.PENDING,
+                currentScreen: CurrentScreen.LOBBY,
                 currentQuestionId: quiz.questions[0].id,
                 currentQuestionIndex: 0,
                 showLeaderboard: true,
@@ -119,10 +122,10 @@ export default async function launchQuizController(req: Request, res: Response) 
                 sessionId: liveSession.id,
                 sessionCode: liveSession.sessionCode,
                 status: liveSession.status,
+                currentScreen: liveSession.currentScreen,
                 quiz: liveSession.quiz,
                 createdAt: liveSession.createdAt,
                 hostToken: hostToken
-
             }
         });
         return;

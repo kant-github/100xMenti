@@ -22,17 +22,21 @@ export enum QuestionEnumType {
 }
 
 export enum SessionStatus {
-  WAITING = "WAITING",
-  STARTING = "STARTING",
-  IN_PROGRESS = "IN_PROGRESS",
-  PAUSED = "PAUSED",
-  FINISHED = "FINISHED",
-  CANCELLED = "CANCELLED",
-  QUESTION_TRANSITION = "QUESTION_TRANSITION",
-  QUESTION_ACTIVE = "QUESTION_ACTIVE",
-  QUESTION_ENDED = "QUESTION_ENDED",
+  PENDING = 'PENDING',
+  LIVE = 'LIVE',
+  PAUSED = 'PAUSED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
 }
 
+export enum CurrentScreen {
+  LOBBY = 'LOBBY',
+  COUNTDOWN = 'COUNTDOWN',
+  QUESTION_ACTIVE = 'QUESTION_ACTIVE',
+  QUESTION_RESULTS = 'QUESTION_RESULTS',
+  LEADERBOARD = 'LEADERBOARD',
+  FINAL_RESULTS = 'FINAL_RESULTS'
+}
 
 export interface UserType {
   id: string;
@@ -83,6 +87,7 @@ export interface QuestionType {
 export interface LiveSessionType {
   id: string;
   sessionCode: string;
+  currentScreen: CurrentScreen;
   status: SessionStatus;
   currentQuestionId?: string | null;
   currentQuestionIndex: number;
@@ -103,6 +108,7 @@ export interface LiveSessionType {
 export interface ParticipantType {
   id: string;
   name: string;
+  isNameChanged: boolean;
   avatar?: string | null;
   isActive: boolean;
   joinedAt: Date;
@@ -113,6 +119,7 @@ export interface ParticipantType {
   sessionId: string;
   session?: LiveSessionType;
   responses?: QuestionResponseType[];
+
 }
 
 export interface QuestionResponseType {

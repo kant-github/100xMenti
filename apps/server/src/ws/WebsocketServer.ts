@@ -47,7 +47,7 @@ export default class WebSocketServer {
         })
     }
 
-    private handleSocketClose(ws) {
+    private handleSocketClose(ws: CustomWebSocket) {
         try {
             const socketId = ws.id;
             const liveSessionId = this.socketToRoom.get(socketId);
@@ -173,12 +173,12 @@ export default class WebSocketServer {
             return;
         }
 
-        if (liveSessionCache.status === SessionStatus.IN_PROGRESS && !liveSessionCache.allowLateJoin) {
+        if (liveSessionCache.status === SessionStatus.LIVE && !liveSessionCache.allowLateJoin) {
             this.sendError(ws, 'Quiz is already in progress and late joining is not allowed');
             return;
         }
 
-        if (liveSessionCache.status === SessionStatus.FINISHED) {
+        if (liveSessionCache.status === SessionStatus.COMPLETED) {
             this.sendError(ws, 'Quiz session has already ended');
             return;
         }
@@ -211,6 +211,7 @@ export default class WebSocketServer {
             currentQuestionIndex: liveSession.currentQuestionIndex,
             currentQuestionId: liveSession.currentQuestionId || '',
             status: liveSession.status,
+            currentScreen: liveSession.currentScreen,
             allowLateJoin: false,
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
@@ -218,6 +219,13 @@ export default class WebSocketServer {
         await this.redisService.createSession(sessionId, liveSessionCache);
 
         this.joinRoom(ws, sessionId);
+        
+        console.log("quiz sending and the data is : ", {
+            sessionId: liveSession.id,
+            sessionCode: liveSession.sessionCode,
+            status: liveSession.status,
+        })
+
 
         this.sendToSocket(ws, {
             type: MESSAGE_TYPES.QUIZ_CREATED,

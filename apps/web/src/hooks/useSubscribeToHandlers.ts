@@ -13,6 +13,7 @@ export const useSubscribeToHandlers = () => {
 
     useEffect(() => {
         subscribeToHandler(MESSAGE_TYPES.NAME_CHANGE, handleIncomingNameChangeHandler);
+
         return () => {
             unSubscribeToHandler(MESSAGE_TYPES.NAME_CHANGE, handleIncomingNameChangeHandler);
         }

@@ -16,16 +16,23 @@ export const useHostEventSubscriptions = () => {
             sessionCode,
             status
         })
-        toast({
-            title: "Quiz is live now",
-            description: 'Share the session code to ask users to join'
+    }
+
+    function handleIncomingStartQuizHandler(newMessage: any) {
+        const { hostScreen, status } = newMessage;
+        console.log("new message is : ", newMessage);
+        updateSession({
+            hostScreen,
+            status
         })
     }
 
     useEffect(() => {
         subscribeToHandler(MESSAGE_TYPES.QUIZ_CREATED, handleIncomingJoinQuizHandler);
+        subscribeToHandler(MESSAGE_TYPES.QUESTION_PREVIEW, handleIncomingStartQuizHandler);
         return () => {
             unSubscribeToHandler(MESSAGE_TYPES.QUIZ_CREATED, handleIncomingJoinQuizHandler);
+            unSubscribeToHandler(MESSAGE_TYPES.QUESTION_PREVIEW, handleIncomingStartQuizHandler);
         }
     }, [])
 }

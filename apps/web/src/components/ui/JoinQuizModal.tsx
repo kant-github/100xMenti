@@ -38,6 +38,10 @@ export default function JoinQuizModal({ setOpenJoinQuizModal }: JoinQuizModalPro
                 setParticipant(data.participant);
                 setOpenJoinQuizModal(false);
                 router.push(`/live/${data.quiz.id}`)
+            } else if (!data.success) {
+                toast({
+                    title: data.message
+                })
             }
 
         } catch (err) {

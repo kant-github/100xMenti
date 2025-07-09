@@ -1,15 +1,22 @@
 import { Button } from "@/components/ui/button";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { useLiveQuizParticipantsStore } from "@/zustand/liveQuizParticipants";
 import { useLiveQuizDataStore } from "@/zustand/liveQuizStore";
+import { useLiveSessionStore } from "@/zustand/liveSession";
 import { Info } from "lucide-react";
 import Image from "next/image";
 
 export default function WaitingLobbyDetailsHost() {
     const { participants } = useLiveQuizParticipantsStore();
     const { liveQuiz } = useLiveQuizDataStore()
+    const { liveSession } = useLiveSessionStore();
 
-    const handleStartQuiz = () => {
-        console.log('Starting quiz...');
+    const { sendStartQuizMessage } = useWebSocket()
+    function handleStartQuiz() {
+        const payload = {
+            sessionId: liveSession.id
+        }
+        sendStartQuizMessage(payload);
     };
 
     const canStart = participants.length >= 2;
@@ -80,7 +87,7 @@ export default function WaitingLobbyDetailsHost() {
                     <Button
                         onClick={handleStartQuiz}
                         disabled={!canStart}
-                        className="w-full h-12 bg-neutral-900 hover:bg-neutral-800 text-white font-medium disabled:bg-neutral-300 disabled:text-neutral-500 transition-colors rounded-xl"
+                        className="w-full h-12 bg-neutral-800 hover:bg-neutral-700 text-white font-medium disabled:bg-neutral-300 disabled:text-neutral-500 transition-colors rounded-xl"
                     >
                         {canStart ? 'Start Quiz' : 'Waiting...'}
                     </Button>

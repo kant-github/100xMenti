@@ -3,6 +3,8 @@ import { prisma } from "../lib/prisma";
 import { redisClient } from "../lib/redis";
 import Redis from "ioredis";
 import { QueueJobTypes } from "../types/RedisQueueOperationTypes";
+import { LiveSession } from "@prisma/client";
+import { LiveSessionCache } from "../types/RedisLiveSessionTypes";
 const REDIS_URL = process.env.REDIS_URL;
 const databaseQueue = new Bull('database-operations', {
     redis: REDIS_URL
@@ -98,6 +100,18 @@ databaseQueue.process(QueueJobTypes.NAME_CHANGE, async (job) => {
     }
 })
 
+databaseQueue.process(QueueJobTypes.UPDATE_SCREEN, async (job) => {
+
+    const { liveSessionId, liveSession } = job.data;
+
+    console.log("job data is : ", job.data);
+
+    const updatedLiveSession = await prisma.liveSession.update({
+        where: {
+            id: liveSessionId
+        }, data: liveSession
+    })
+})
 
 export class DatabaseQueue {
 
@@ -114,12 +128,25 @@ export class DatabaseQueue {
         )
     }
 
-    static updateParticipantName(participantId: string, participantName: string, sessionId: string) {
+    static updateLiveSession(liveSessionId: string, liveSession: Partial<LiveSession>) {
+        return databaseQueue.add(QueueJobTypes.UPDATE_SCREEN,
+            {
+                liveSessionId,
+                liveSession
+            },
+            {
+                attempts: 3,
+                delay: 1000,
+            }
+        )
+    }
+
+    static updateParticipantName(participantId: string, participantName: string, liveSessionId: string) {
         return databaseQueue.add(QueueJobTypes.NAME_CHANGE,
             {
                 participantId,
                 participantName,
-                sessionId
+                sessionId: liveSessionId
             },
             {
                 attempts: 3,

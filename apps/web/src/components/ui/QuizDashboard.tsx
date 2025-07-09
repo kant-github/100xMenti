@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Users, TrendingUp, Play, BarChart3, Zap, Star, ArrowRight, CheckCircle } from 'lucide-react';
+import { BookOpen, Users, TrendingUp, Play, Star, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function QuizLandingPage() {
+
     const [isVisible, setIsVisible] = useState(false);
     const [currentTestimonial, setCurrentTestimonial] = useState(0);
     const [votes, setVotes] = useState([85, 62, 94, 71]);
@@ -9,7 +10,7 @@ export default function QuizLandingPage() {
 
     useEffect(() => {
         setIsVisible(true);
-        
+
         const testimonialInterval = setInterval(() => {
             setCurrentTestimonial(prev => (prev + 1) % testimonials.length);
         }, 4000);
@@ -20,7 +21,7 @@ export default function QuizLandingPage() {
                 const newVotes = prev.map(() => Math.floor(Math.random() * 80) + 40);
                 return newVotes;
             });
-            
+
             setTimeout(() => setIsAnimating(false), 500);
         }, 2500);
 
@@ -38,9 +39,6 @@ export default function QuizLandingPage() {
 
     return (
         <div className="bg-neutral-100 overflow-hidden">
-
-            
-        
             <section className="relative z-10 px-6 pt-20 pb-32">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -83,7 +81,7 @@ export default function QuizLandingPage() {
                         <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                             <div className="relative">
                                 <div className="bg-white/80 backdrop-blur-sm shadow-2xl rounded-2xl p-8 border border-slate-200 relative overflow-hidden">
-                                    
+
                                     <div className="flex justify-between items-center mb-6">
                                         <div className="flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm">
                                             <Users className="w-4 h-4" />
@@ -116,7 +114,7 @@ export default function QuizLandingPage() {
                                                 <div className={`text-sm font-medium text-slate-700 mb-2 transition-all duration-300 ${isAnimating ? 'scale-110' : 'scale-100'}`}>
                                                     {Math.round(votes[idx])}
                                                 </div>
-                                                <div 
+                                                <div
                                                     className={`w-full ${option.color} rounded-tr-lg transition-all duration-1000 ease-in-out transform ${isAnimating ? 'scale-x-105' : 'scale-x-100'}`}
                                                     style={{ height: `${votes[idx]}px` }}
                                                 />

@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import { ParticipantData } from "../types/WebSocketTypes";
 import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
+import { HostScreen, ParticipantScreen } from "@prisma/client";
 
 const REDIS_URL = process.env.REDIS_URL;
 
@@ -14,17 +15,17 @@ export default class RedisSessionService {
     public async createSession(sessionId: string, liveSession: LiveSessionCache) {
         try {
             const sessionKey = `session:${sessionId}`;
-            await this.redis.hmset(sessionKey, {
-                sessionCode: liveSession.sessionCode,
-                hostId: liveSession.hostId,
-                quizId: liveSession.quizId,
-                currentQuestionIndex: liveSession.currentQuestionIndex.toString(),
-                currentQuestionId: liveSession.currentQuestionId || '',
-                status: liveSession.status,
-                questionStartTime: liveSession.questionStartTime?.toString() || '',
-                createdAt: Date.now().toString(),
-                allowLateJoin: liveSession.allowLateJoin.toString()
-            })
+            await this.redis.hmset(sessionKey, liveSession)
+            await this.redis.expire(sessionKey, 24 * 60 * 60);
+        } catch (err) {
+            console.error("Error in session management while creating session", err);
+        }
+    }
+
+    public async updateSession(sessionId: string, liveSession: Partial<LiveSessionCache>) {
+        try {
+            const sessionKey = `session:${sessionId}`;
+            await this.redis.hmset(sessionKey, liveSession)
             await this.redis.expire(sessionKey, 24 * 60 * 60);
         } catch (err) {
             console.error("Error in session management while creating session", err);
@@ -46,7 +47,8 @@ export default class RedisSessionService {
                 sessionCode: sessionData.sessionCode,
                 hostId: sessionData.hostId,
                 quizId: sessionData.quizId,
-                // participants,
+                hostScreen: sessionData.hostScreen as HostScreen,
+                participantScreen: sessionData.participantScreen as ParticipantScreen,
                 currentQuestionIndex: Number(sessionData.currentQuestionIndex),
                 currentQuestionId: sessionData.currentQuestionId || null,
                 status: sessionData.status as any,
@@ -114,6 +116,45 @@ export default class RedisSessionService {
 
         } catch (err) {
             console.error("Error in getting session participants", err);
+        }
+    }
+
+    public async getParticipant(sessionId: string, participantId: string): Promise<ParticipantDataCache | null> {
+        const participantKey = `session:${sessionId}:participants`;
+        try {
+            const participantData = await this.redis.hget(participantKey, participantId);
+            if (!participantData) {
+                return null;
+            }
+            return JSON.parse(participantData);
+        } catch (err) {
+            console.error(`Error getting participant ${participantId} from session ${sessionId}:`, err);
+            return null;
+        }
+    }
+
+    public async updateParticipant(sessionId: string, participantId: string, updates: Partial<ParticipantDataCache>): Promise<void> {
+        const participantKey = `session:${sessionId}:participants`;
+        try {
+            const existingParticipant = await this.getParticipant(sessionId, participantId);
+            if (!existingParticipant) {
+                console.error(`Participant ${participantId} not found in session ${sessionId}`);
+                return;
+            }
+
+            const updatedParticipant = {
+                ...existingParticipant,
+                ...updates
+            };
+
+            await this.redis.hset(
+                participantKey,
+                participantId,
+                JSON.stringify(updatedParticipant)
+            );
+            await this.redis.expire(participantKey, 24 * 60 * 60);
+        } catch (err) {
+            console.error(`Error updating participant ${participantId} in session ${sessionId}:`, err);
         }
     }
 

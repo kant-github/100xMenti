@@ -2,11 +2,12 @@ import { Request, Response } from "express";
 import { prisma } from "../../lib/prisma";
 import jwt from 'jsonwebtoken'
 import GenerateUser from "../../lib/GenerateUser";
-export default async function joinQuizController(req: Request, res: Response) {
 
+export default async function joinQuizController(req: Request, res: Response) {
     const { sessionCode } = req.params;
     const JWT_SECRET = process.env.JWT_SECRET;
 
+    // Basic validation
     if (!JWT_SECRET) {
         console.error('JWT_SECRET is not defined');
         res.status(500).json({
@@ -16,9 +17,10 @@ export default async function joinQuizController(req: Request, res: Response) {
     }
 
     if (!sessionCode) {
-        res.status(500).json({
-            message: "Session code not found"
-        })
+        res.status(400).json({
+            success: false,
+            error: "Session code is required"
+        });
         return;
     }
 
@@ -32,7 +34,34 @@ export default async function joinQuizController(req: Request, res: Response) {
         });
 
         if (!liveSession) {
-            res.status(404).json({ error: 'Session not found' });
+            res.status(404).json({
+                success: false,
+                error: 'Session not found'
+            });
+            return;
+        }
+
+        switch (liveSession.status) {
+            case 'LIVE':
+                res.status(200).json({
+                    success: false,
+                    message: 'Quiz is already in progress'
+                });
+                return;
+            case 'COMPLETED':
+                res.status(200).json({
+                    success: false,
+                    message: 'Quiz session has already ended'
+                });
+                return;
+        }
+
+
+        if (!liveSession.quiz) {
+            res.status(200).json({
+                success: false,
+                message: 'Quiz not found'
+            });
             return;
         }
 
@@ -43,7 +72,7 @@ export default async function joinQuizController(req: Request, res: Response) {
                 isActive: false,
                 sessionId: liveSession.id
             }
-        })
+        });
 
         const participantTokenPayload = {
             participantId: participant.id,
@@ -54,33 +83,31 @@ export default async function joinQuizController(req: Request, res: Response) {
             avatar: participant.avatar
         };
 
-
         const participantToken = jwt.sign(participantTokenPayload, JWT_SECRET, {
             expiresIn: '2h',
             issuer: 'quiz-app',
             audience: 'quiz-participant'
-        })
+        });
 
-
-        res.json({
+        res.status(200).json({
             success: true,
             participant: {
                 id: participant.id,
                 name: participant.name,
                 avatar: participant.avatar
             },
-
             session: {
                 id: liveSession.id,
                 code: liveSession.sessionCode,
                 status: liveSession.status
             },
             quiz: {
-                id: liveSession.quizId
+                id: liveSession.quizId,
             },
             token: participantToken
         });
         return;
+
     } catch (err) {
         console.error('Join session error:', err);
         res.status(500).json({

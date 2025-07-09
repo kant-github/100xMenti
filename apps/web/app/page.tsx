@@ -9,7 +9,6 @@ export default function Home() {
   const { data: sessionData, status } = useSession();
   const { setSession } = useSessionStore();
 
-
   useEffect(() => {
     if (status !== 'loading' && sessionData) {
       setSession(sessionData);

@@ -117,10 +117,10 @@ export default function WaitingLobbyParticipant() {
                     {!participant.isNameChanged && (
                         <div className='mb-4 flex flex-col space-y-4'>
                             <div className='bg-neutral-800 rounded-xl border border-neutral-300 p-4 shadow-lg'>
-                                <label className='block text-sm font-medium text-neutral-100 mb-2'>
+                                <label className='block text-sm font-medium text-neutral-300 mb-2'>
                                     Choose your display name
                                 </label>
-                                <p className='text-xs text-neutral-300 mb-3'>
+                                <p className='text-xs text-neutral-400 mb-3'>
                                     This name will be visible to other participants
                                 </p>
                                 <form onSubmit={changeName} className="relative mt-8">

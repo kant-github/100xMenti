@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import generateRandom6digitCode from "../../lib/generateRandom6digitCode";
 import { prisma } from "../../lib/prisma";
-import { SessionStatus, CurrentScreen } from "@prisma/client";
+import { SessionStatus, HostScreen, ParticipantScreen } from "@prisma/client";
 import jwt from 'jsonwebtoken';
 
 export default async function launchQuizController(req: Request, res: Response) {
@@ -76,7 +76,8 @@ export default async function launchQuizController(req: Request, res: Response) 
             data: {
                 sessionCode: getNewSessionCode,
                 status: SessionStatus.PENDING,
-                currentScreen: CurrentScreen.LOBBY,
+                hostScreen: HostScreen.LOBBY,
+                participantScreen: ParticipantScreen.LOBBY,
                 currentQuestionId: quiz.questions[0].id,
                 currentQuestionIndex: 0,
                 showLeaderboard: true,
@@ -122,7 +123,8 @@ export default async function launchQuizController(req: Request, res: Response) 
                 sessionId: liveSession.id,
                 sessionCode: liveSession.sessionCode,
                 status: liveSession.status,
-                currentScreen: liveSession.currentScreen,
+                hostScreen: liveSession.hostScreen,
+                participantScreen: liveSession.participantScreen,
                 quiz: liveSession.quiz,
                 createdAt: liveSession.createdAt,
                 hostToken: hostToken

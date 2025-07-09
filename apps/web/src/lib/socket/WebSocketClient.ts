@@ -18,7 +18,6 @@ export default class WebSocketClient {
 
     private async connect() {
         this.ws = new WebSocket(this.URL);
-
         this.ws.onopen = () => {
             this.isConnected = true;
             this.reconnectAttempts = 0;
@@ -92,6 +91,9 @@ export default class WebSocketClient {
                 break;
             case MESSAGE_TYPES.QUIZ_ENDED:
                 this.emit(MESSAGE_TYPES.QUIZ_ENDED, payload);
+                break;
+            case MESSAGE_TYPES.QUESTION_PREVIEW:
+                this.emit(MESSAGE_TYPES.QUESTION_PREVIEW, payload);
                 break;
             case MESSAGE_TYPES.ANSWER_SUBMITTED:
                 this.emit(MESSAGE_TYPES.ANSWER_SUBMITTED, payload);

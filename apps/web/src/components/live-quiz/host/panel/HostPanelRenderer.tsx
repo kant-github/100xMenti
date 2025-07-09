@@ -28,18 +28,16 @@ export default function HostPannelRenderer() {
                 return <WaitingLobbyHost />
             case HostScreen.QUESTION_ACTIVE:
                 return <LiveQuizQuestionActiveComponent />
+            case HostScreen.QUESTION_PREVIEW:
+                return <div>questions</div>
         }
     }
 
     return (
         <div className="w-full h-screen overflow-hidden relative">
             <LiveSessionCodeTicker sessionCode={liveSession.sessionCode} />
-            {liveSession.status === SessionStatus.LIVE && (
-                <div className="absolute top-1 left-1 flex items-center gap-1 px-2 py-0.5 bg-green-100 rounded-full border border-green-500">
-                    <div className="h-2.5 w-2.5 bg-green-500 rounded-full" />
-                    <span className="text-xs text-green-700 font-medium">Live</span>
-                </div>
-            )}
+
+            
             {renderComponent()}
         </div>
     );

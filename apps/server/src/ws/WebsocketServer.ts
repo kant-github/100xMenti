@@ -6,8 +6,12 @@ import { prisma } from "../lib/prisma";
 import jwt from 'jsonwebtoken';
 import RedisSessionService from "../service/RedisSessionService";
 import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
-import { SessionStatus } from "@prisma/client";
+import { HostScreen, ParticipantScreen, SessionStatus } from "@prisma/client";
 import { DatabaseQueue } from "../queue/databaseQueue";
+interface WebSocketMessage {
+    type: string;
+    payload: any
+}
 
 export default class WebSocketServer {
     private wss: WSServer;
@@ -15,7 +19,6 @@ export default class WebSocketServer {
     private roomMapping: Map<string, Set<string>> = new Map() // liveSessionID -> Set(socketIds) 
     private socketToRoom: Map<string, string> = new Map(); // socketId -> liveSessionID
     private redisService: RedisSessionService;
-    private databaseQueue = DatabaseQueue;
 
     constructor(server: Server) {
         this.wss = new WSServer({ server });
@@ -33,7 +36,8 @@ export default class WebSocketServer {
             ws.id = newWebSocketId;
             this.socketMapping.set(newWebSocketId, ws);
 
-            ws.on('message', (data: any) => {
+            ws.on('message', async (data: any) => {
+
                 try {
                     const parsedMessage = JSON.parse(data);
                     this.handleIncomingMessage(ws, parsedMessage)
@@ -79,6 +83,9 @@ export default class WebSocketServer {
             case MESSAGE_TYPES.JOIN_QUIZ:
                 this.handleJoinQuiz(ws, payload);
                 break;
+            case MESSAGE_TYPES.START_QUIZ:
+                this.handleStartQuiz(ws, payload);
+                break;
             case MESSAGE_TYPES.LEAVE_QUIZ:
                 this.handleLeaveQuiz()
                 break;
@@ -93,6 +100,30 @@ export default class WebSocketServer {
         }
     }
 
+    private async handleStartQuiz(ws: CustomWebSocket, payload: any) {
+        const { sessionId } = payload;
+
+        await this.redisService.updateSession(sessionId, {
+            hostScreen: HostScreen.QUESTION_PREVIEW,
+            status: SessionStatus.LIVE,
+            participantScreen: ParticipantScreen.LOBBY,
+        })
+        DatabaseQueue.updateLiveSession(sessionId, {
+            hostScreen: HostScreen.QUESTION_PREVIEW,
+            status: SessionStatus.LIVE,
+            participantScreen: ParticipantScreen.LOBBY,
+        });
+
+        this.sendToSocket(ws, {
+            type: MESSAGE_TYPES.QUESTION_PREVIEW,
+            payload: {
+                hostScreen: HostScreen.QUESTION_PREVIEW,
+                status: SessionStatus.LIVE,
+            }
+        })
+
+    }
+
     private async handleNameChange(ws: CustomWebSocket, payload: any) {
         const { participantId, participantName } = payload;
         if (ws.user.type !== 'participant') {
@@ -104,7 +135,7 @@ export default class WebSocketServer {
             this.sendError(ws, 'Unauthorized');
             return;
         }
-
+        console.log(ws.id);
         const sessionId = this.socketToRoom.get(ws.id);
         if (!sessionId) {
             this.sendError(ws, 'Session not found');
@@ -135,8 +166,7 @@ export default class WebSocketServer {
         if (this.isParticipantToken(ws.user)) {
             participantId = ws.user.participantId;
         }
-        console.log("participant id is : ", participantId);
-        console.log("ws user is : ", ws.user);
+
         if (!sessionId) {
             this.sendError(ws, 'Session code is required');
             return;
@@ -149,46 +179,100 @@ export default class WebSocketServer {
             }
         })
 
-        console.log("quiz is : ", quiz);
-
-        let isHost: boolean = false;
-        if (this.isHostToken(ws.user)) {
-            isHost = quiz.creator_id === String(ws.user.hostId);
-        }
-
-        if (isHost) {
-            this.handleCreateQuiz(ws, payload)
-            return;
-        }
-
-        if (!this.isParticipantToken(ws.user)) {
-            this.sendError(ws, 'Invalid user type for joining quiz');
-            return;
-        }
-
-        if (!participantId) {
-            this.sendError(ws, 'Participant name is required');
-            return;
+        if (!quiz) {
+            return this.sendError(ws, 'Quiz not found');
         }
 
         let liveSessionCache: LiveSessionCache = await this.redisService.getLiveSession(sessionId);
-        console.log("live session cache is : ", liveSessionCache);
-        if (!liveSessionCache) {
-            this.sendError(ws, 'Quiz session has not been started by the host. Please wait for the host to start the session.');
+        const isHost = this.isHostToken(ws.user) && quiz.creator_id === String(ws.user.hostId);
+
+        if (isHost) {
+            this.handleHostJoin(ws, payload, liveSessionCache)
             return;
         }
 
-        if (liveSessionCache.status === SessionStatus.LIVE && !liveSessionCache.allowLateJoin) {
-            this.sendError(ws, 'Quiz is already in progress and late joining is not allowed');
+        this.handleParticipantJoin(ws, sessionId, liveSessionCache);
+        return;
+
+        // if (!this.isParticipantToken(ws.user)) {
+        //     this.sendError(ws, 'Invalid user type for joining quiz');
+        //     return;
+        // }
+
+        // if (!participantId) {
+        //     this.sendError(ws, 'Participant name is required');
+        //     return;
+        // }
+
+        // console.log("live session cache is : ", liveSessionCache);
+        // if (!liveSessionCache) {
+        //     this.sendError(ws, 'Quiz session has not been started by the host. Please wait for the host to start the session.');
+        //     return;
+        // }
+        // if (liveSessionCache.status === SessionStatus.COMPLETED) {
+        //     this.sendError(ws, 'Quiz session has already ended');
+        //     return;
+        // }
+
+        // if (liveSessionCache.status === SessionStatus.LIVE && !liveSessionCache.allowLateJoin) {
+        //     const existingParticipant = await this.redisService.getParticipant(sessionId, participantId)
+        //     if (!existingParticipant) {
+        //         this.sendError(ws, 'Quiz is already in progress and late joining is not allowed');
+        //         return;
+        //     }
+        //     console.log(`Allowing existing participant ${participantId} to rejoin session ${sessionId}`);
+        // }
+
+
+        // await this.addParticipantToRoom(ws, liveSessionCache, participantId)
+    }
+
+    private handleHostJoin(ws: CustomWebSocket, payload: any, liveSessionCache: LiveSessionCache | null) {
+
+        const { sessionId } = payload;
+        if (!liveSessionCache || liveSessionCache.status !== SessionStatus.LIVE) {
+            this.handleCreateQuiz(ws, payload);
             return;
+        }
+
+        this.joinRoom(ws, sessionId);
+        this.sendToSocket(ws, {
+            type: MESSAGE_TYPES.QUIZ_CREATED,
+            payload: {
+                sessionId: liveSessionCache.sessionId,
+                sessionCode: liveSessionCache.sessionCode,
+                status: liveSessionCache.status,
+            }
+        });
+    }
+
+    private async handleParticipantJoin(ws: CustomWebSocket, payload: any, liveSessionCache: LiveSessionCache | null) {
+        const { sessionId } = payload;
+        if (!this.isParticipantToken(ws.user)) {
+            return this.sendError(ws, 'Invalid user type for joining quiz');
+        }
+
+        const participantId = ws.user.participantId;
+        if (!participantId) {
+            return this.sendError(ws, 'Participant name is required');
+        }
+
+        if (!liveSessionCache) {
+            return this.sendError(ws, 'Quiz session has not been started by the host. Please wait for the host to start the session.');
         }
 
         if (liveSessionCache.status === SessionStatus.COMPLETED) {
-            this.sendError(ws, 'Quiz session has already ended');
-            return;
+            return this.sendError(ws, 'Quiz session has already ended');
         }
 
-        await this.addParticipantToRoom(ws, liveSessionCache, participantId)
+        if (liveSessionCache.status === SessionStatus.LIVE && !liveSessionCache.allowLateJoin) {
+            const canRejoin = await this.canParticipantRejoin(sessionId, participantId);
+            if (!canRejoin) {
+                return this.sendError(ws, 'Quiz is already in progress and late joining is not allowed');
+            }
+        }
+        this.addParticipantToRoom(ws, liveSessionCache, participantId);
+        return;
     }
 
     private async handleCreateQuiz(ws: CustomWebSocket, payload: any) {
@@ -196,7 +280,7 @@ export default class WebSocketServer {
             this.sendError(ws, 'Only hosts can create quiz sessions');
             return;
         }
-        console.log("quiz creation started");
+
         const { sessionId } = payload;
 
         const liveSession = await prisma.liveSession.findUnique({
@@ -249,6 +333,17 @@ export default class WebSocketServer {
                 return;
             }
 
+            const existingParticipant = await this.redisService.getParticipant(liveSession.sessionId, participantId);
+
+            if (existingParticipant) {
+                await this.redisService.updateParticipant(liveSession.sessionId, participantId, {
+                    socketId: ws.id,
+                    isActive: true
+                })
+                this.joinRoom(ws, liveSession.sessionId);
+                return;
+            }
+
             const newParticipant: ParticipantDataCache = {
                 id: participantId,
                 name: participant.name,
@@ -263,9 +358,9 @@ export default class WebSocketServer {
             }
 
             await this.redisService.addParticipant(liveSession.sessionId, newParticipant)
-            console.log("redis cache done : ", newParticipant);
+
             this.joinRoom(ws, liveSession.sessionId);
-            console.log("room joined");
+
             this.sendToSocket(ws, {
                 type: MESSAGE_TYPES.JOINED_QUIZ,
                 payload: {
@@ -314,13 +409,13 @@ export default class WebSocketServer {
         })
     }
 
-    private sendToSocket(ws: CustomWebSocket, message: any) {
+    private sendToSocket(ws: CustomWebSocket, message: WebSocketMessage) {
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(message));
         }
     }
 
-    private broadcastToRoom(sessionId: string, message: any, excludeSocketId?: string) {
+    private broadcastToRoom(sessionId: string, message: WebSocketMessage, excludeSocketId?: string) {
         const socketIds = this.roomMapping.get(sessionId);
         if (!socketIds) return;
         console.log("socket ids are : ", socketIds);
@@ -378,4 +473,10 @@ export default class WebSocketServer {
         return user.type === 'participant';
     }
 
+    private async canParticipantRejoin(sessionId: string, participantId: string): Promise<boolean> {
+        const existingParticipant = await this.redisService.getParticipant(sessionId, participantId);
+        if (existingParticipant) return true;
+        return false;
+    }
 }
+

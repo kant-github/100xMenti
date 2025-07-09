@@ -1,7 +1,7 @@
 import { Server } from "http";
 import { Server as WSServer, WebSocket } from "ws";
 import { v4 as uuid } from "uuid";
-import { CustomWebSocket, HostTokenPayload, MESSAGE_TYPES, ParticipantData, ParticipantTokenPayload } from "../types/WebSocketTypes";
+import { CustomWebSocket, HostTokenPayload, MESSAGE_TYPES, ParticipantTokenPayload } from "../types/WebSocketTypes";
 import { prisma } from "../lib/prisma";
 import jwt from 'jsonwebtoken';
 import RedisSessionService from "../service/RedisSessionService";
@@ -74,6 +74,7 @@ export default class WebSocketServer {
 
     private handleIncomingMessage(ws: CustomWebSocket, message: any) {
         const { type, payload } = message;
+        console.log("ws message came : ", type);
         switch (type) {
             case MESSAGE_TYPES.JOIN_QUIZ:
                 this.handleJoinQuiz(ws, payload);
@@ -134,6 +135,8 @@ export default class WebSocketServer {
         if (this.isParticipantToken(ws.user)) {
             participantId = ws.user.participantId;
         }
+        console.log("participant id is : ", participantId);
+        console.log("ws user is : ", ws.user);
         if (!sessionId) {
             this.sendError(ws, 'Session code is required');
             return;
@@ -145,6 +148,8 @@ export default class WebSocketServer {
                 creator: true
             }
         })
+
+        console.log("quiz is : ", quiz);
 
         let isHost: boolean = false;
         if (this.isHostToken(ws.user)) {
@@ -167,7 +172,7 @@ export default class WebSocketServer {
         }
 
         let liveSessionCache: LiveSessionCache = await this.redisService.getLiveSession(sessionId);
-
+        console.log("live session cache is : ", liveSessionCache);
         if (!liveSessionCache) {
             this.sendError(ws, 'Quiz session has not been started by the host. Please wait for the host to start the session.');
             return;
@@ -191,12 +196,13 @@ export default class WebSocketServer {
             this.sendError(ws, 'Only hosts can create quiz sessions');
             return;
         }
-
+        console.log("quiz creation started");
         const { sessionId } = payload;
 
         const liveSession = await prisma.liveSession.findUnique({
             where: { id: sessionId }
         })
+
 
         if (!liveSession) {
             this.sendError(ws, 'Live session not found');
@@ -211,7 +217,8 @@ export default class WebSocketServer {
             currentQuestionIndex: liveSession.currentQuestionIndex,
             currentQuestionId: liveSession.currentQuestionId || '',
             status: liveSession.status,
-            currentScreen: liveSession.currentScreen,
+            hostScreen: liveSession.hostScreen,
+            participantScreen: liveSession.participantScreen,
             allowLateJoin: false,
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
@@ -219,13 +226,6 @@ export default class WebSocketServer {
         await this.redisService.createSession(sessionId, liveSessionCache);
 
         this.joinRoom(ws, sessionId);
-
-        console.log("quiz sending and the data is : ", {
-            sessionId: liveSession.id,
-            sessionCode: liveSession.sessionCode,
-            status: liveSession.status,
-        })
-
 
         this.sendToSocket(ws, {
             type: MESSAGE_TYPES.QUIZ_CREATED,
@@ -239,6 +239,7 @@ export default class WebSocketServer {
 
     private async addParticipantToRoom(ws: CustomWebSocket, liveSession: LiveSessionCache, participantId: string) {
         try {
+            console.log("participant join started");
             const participant = await prisma.participant.findUnique({
                 where: { id: participantId }
             })
@@ -262,9 +263,9 @@ export default class WebSocketServer {
             }
 
             await this.redisService.addParticipant(liveSession.sessionId, newParticipant)
-
+            console.log("redis cache done : ", newParticipant);
             this.joinRoom(ws, liveSession.sessionId);
-
+            console.log("room joined");
             this.sendToSocket(ws, {
                 type: MESSAGE_TYPES.JOINED_QUIZ,
                 payload: {
@@ -275,6 +276,8 @@ export default class WebSocketServer {
                 }
             })
 
+            console.log("sent to socket");
+
             this.broadcastToRoom(liveSession.sessionId, {
                 type: MESSAGE_TYPES.PARTICIPANT_JOINED,
                 payload: {
@@ -284,6 +287,7 @@ export default class WebSocketServer {
                     name: newParticipant.name
                 }
             }, ws.id)
+            console.log("broadcasted");
 
         } catch (err) {
             console.error('Error adding participant to room:', err);
@@ -319,7 +323,7 @@ export default class WebSocketServer {
     private broadcastToRoom(sessionId: string, message: any, excludeSocketId?: string) {
         const socketIds = this.roomMapping.get(sessionId);
         if (!socketIds) return;
-
+        console.log("socket ids are : ", socketIds);
         socketIds.forEach(socketId => {
             if (socketId !== excludeSocketId) {
                 const socket = this.socketMapping.get(socketId);

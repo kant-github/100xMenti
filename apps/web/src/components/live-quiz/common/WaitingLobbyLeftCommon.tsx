@@ -8,7 +8,7 @@ export default function WaitingLobbyLeftCommon() {
 
     const avatarSize = 100;
     const minDistance = avatarSize + 20;
-    
+
     function generatePositions(total: number): Position[] {
         const positions: Position[] = [];
 
@@ -103,13 +103,12 @@ export default function WaitingLobbyLeftCommon() {
 
     return (
         <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
-            {participants.map((p, index) => {
+            {participants.slice(0,20).map((p, index) => {
                 const position = positions[index];
                 if (!position) {
-                    console.warn(`Position not found for participant ${p.id} at index ${index}`);
                     return null;
                 }
-               
+
                 return (
                     <WaitingLobbyAvatar
                         key={p.id}

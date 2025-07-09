@@ -13,7 +13,7 @@ export const useSubscribeToHandlers = () => {
     }
 
     function handleIncomingParticipantJoinedHandler(newMessage: any) {
-        console.log("new participant joined is : ", newMessage)
+        console.log("new participant joined is : ", newMessage);
         const { participantId, avatar, name, liveSessionId } = newMessage;
         addParticipant({ participantId, avatar, name, liveSessionId });
     }

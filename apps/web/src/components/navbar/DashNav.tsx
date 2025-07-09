@@ -40,7 +40,6 @@ export default function DashNav() {
             </div>
             {openLoginModal && (<LoginModal setOpenLoginModal={setOpenLoginModal} />)}
             {openQuizModal && (<JoinQuizModal setOpenJoinQuizModal={setOpenJoinQuizModal} />)}
-
         </div>
     )
 }

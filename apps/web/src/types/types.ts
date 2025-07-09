@@ -29,7 +29,16 @@ export enum SessionStatus {
   CANCELLED = 'CANCELLED'
 }
 
-export enum CurrentScreen {
+export enum HostScreen {
+  LOBBY = 'LOBBY',
+  QUESTION_PREVIEW = 'QUESTION_PREVIEW',
+  QUESTION_ACTIVE = 'QUESTION_ACTIVE',
+  QUESTION_RESULTS = 'QUESTION_RESULTS',
+  LEADERBOARD = 'LEADERBOARD',
+  FINAL_RESULTS = 'FINAL_RESULTS'
+}
+
+export enum ParticipantScreen {
   LOBBY = 'LOBBY',
   COUNTDOWN = 'COUNTDOWN',
   QUESTION_ACTIVE = 'QUESTION_ACTIVE',
@@ -87,7 +96,8 @@ export interface QuestionType {
 export interface LiveSessionType {
   id: string;
   sessionCode: string;
-  currentScreen: CurrentScreen;
+  hostScreen: HostScreen;
+  participantScreen: ParticipantScreen;
   status: SessionStatus;
   currentQuestionId?: string | null;
   currentQuestionIndex: number;

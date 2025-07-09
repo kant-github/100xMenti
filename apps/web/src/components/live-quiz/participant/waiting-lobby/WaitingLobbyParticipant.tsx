@@ -115,7 +115,7 @@ export default function WaitingLobbyParticipant() {
                         }
                     </div>
                     {!participant.isNameChanged && (
-                        <div className='px-6 mb-4 flex flex-col space-y-4'>
+                        <div className='mb-4 flex flex-col space-y-4'>
                             <div className='bg-neutral-800 rounded-xl border border-neutral-300 p-4 shadow-lg'>
                                 <label className='block text-sm font-medium text-neutral-100 mb-2'>
                                     Choose your display name

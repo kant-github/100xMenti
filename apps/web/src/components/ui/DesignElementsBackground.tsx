@@ -25,7 +25,7 @@ export default function DesignBackground({ design, accentColor }: DesignBackgrou
                     </div>
                 );
 
-            case 'staircase':
+            case 'wave':
                 return (
                     <div
                         className="absolute inset-0 overflow-hidden rounded-xl"
@@ -39,6 +39,27 @@ export default function DesignBackground({ design, accentColor }: DesignBackgrou
                                 opacity: 0.1,
                             }}
                         />
+                    </div>
+                );
+
+            case 'staircase':
+                return (
+                    <div
+                        className="absolute inset-0 overflow-hidden rounded-xl"
+                        style={{ zIndex: 0 }}
+                    >
+                        {/* SVG Staircase */}
+                        <svg
+                            className="absolute -bottom-1/8 -right-1/4 w-[120%] h-[120%]"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                        >
+                            <path
+                                d="M 0 100 L 0 80 L 20 80 L 20 60 L 40 60 L 40 40 L 60 40 L 60 20 L 80 20 L 80 0 L 100 0 L 100 100 Z"
+                                fill={accentColor}
+                                opacity="0.08"
+                            />
+                        </svg>
                     </div>
                 );
 

@@ -1,5 +1,5 @@
 import DesignElementsBackground from "@/components/ui/DesignElementsBackground";
-import templates, { Template } from "@/lib/templates"
+import { Template } from "@/lib/templates"
 import { useLiveQuestionPreviewCount } from "@/zustand/live-quiz-store/useLiveQuestionPreviewCount";
 import { useLiveQuizDataStore } from "@/zustand/liveQuizStore"
 import { IoIosCheckmark } from "react-icons/io";
@@ -13,22 +13,23 @@ export default function QuestionPreviewLeft({ selectedTemplate }: QuestionPrevie
     const { liveQuiz } = useLiveQuizDataStore()
     const { currentQuestionIx } = useLiveQuestionPreviewCount();
     const currentQ = liveQuiz.questions[currentQuestionIx];
-
+    console.log("selected color template", selectedTemplate);
     return (
         <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
-            <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-lg flex flex-col"
+            <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-lg flex flex-col border-3 border-neutral-700 relative overflow-hidden"
                 style={{
                     backgroundColor: selectedTemplate.bg,
-                    color: selectedTemplate.textColor
+                    color: selectedTemplate.textColor,
+                    border: `2px solid ${selectedTemplate.textColor}`
                 }}
             >
                 <DesignElementsBackground
                     design={selectedTemplate.design}
-                    accentColor={selectedTemplate.accent}
+                    accentColor={selectedTemplate.designColor}
                 />
 
                 <div className="relative z-10">
-                    <div className="text-center font-normal text-3xl">{currentQ.title}</div>
+                    <div className="text-center font-light text-3xl tracking-wide">{currentQ.title}</div>
                 </div>
 
                 <div className="w-full max-w-3xl h-full flex items-end justify-center gap-4 relative z-10">
@@ -50,12 +51,13 @@ export default function QuestionPreviewLeft({ selectedTemplate }: QuestionPrevie
                                         height: `${12}px`,
                                         minWidth: '60px',
                                         maxWidth: '180px',
-                                        backgroundColor: selectedTemplate.bars[idx]
+                                        backgroundColor: `${selectedTemplate.bars[idx]}CA`,
                                     }}
                                 />
 
                                 <div className="mt-2 h-8 flex items-center justify-center">
-                                    <div className="text-xs sm:text-sm text-neutral-950 text-center px-1 leading-tight font-light">
+                                    <div style={{ color: `${selectedTemplate.textColor}` }} className="text-xs sm:text-[16px] text-neutral-950 text-center px-1 leading-tight font-light flex items-center justify-start gap-x-1">
+                                        <div>{String.fromCharCode(97 + idx)}.{')'} </div>
                                         {option.length > 12 ? `${option.substring(0, 12)}...` : option}
                                     </div>
                                 </div>

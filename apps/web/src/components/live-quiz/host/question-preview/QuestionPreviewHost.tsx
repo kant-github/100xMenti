@@ -11,7 +11,7 @@ export default function QuestionPreviewHost() {
         <div className="min-h-screen z-0">
             <div className='grid grid-cols-[70%_30%]' style={{ backgroundColor: selectedTemplate.accent }}>
                 <QuestionPreviewLeft selectedTemplate={selectedTemplate} />
-                <QuestionPreviewRight />
+                <QuestionPreviewRight selectedTemplate={selectedTemplate} />
             </div>
         </div>
     )

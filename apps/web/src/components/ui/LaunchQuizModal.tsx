@@ -30,6 +30,18 @@ export default function LaunchQuizModal({ setOpenLaunchQuizModal, launchQuizHand
                     className={`gap-3 w-full grid transition-all duration-300 ${loading ? "grid-cols-1" : "grid-cols-2"
                         }`}
                 >
+                    {!loading && (
+                        <Button
+                            disabled={loading}
+                            onClick={() => {
+                                setOpenLaunchQuizModal(false);
+                                setOpen(true);
+                            }}
+                            className="transition-all duration-300 flex items-center justify-center gap-3 px-6 py-5 text-sm font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 rounded-xl border-[1px] border-neutral-200 w-full"
+                        >
+                            <span className="text-neutral-900 dark:text-white">Cancel</span>
+                        </Button>
+                    )}
                     <Button
                         disabled={loading}
                         onClick={() => launchQuizHandler(quiz.id)}
@@ -44,19 +56,6 @@ export default function LaunchQuizModal({ setOpenLaunchQuizModal, launchQuizHand
                             <span>Launch Quiz</span>
                         )}
                     </Button>
-
-                    {!loading && (
-                        <Button
-                            disabled={loading}
-                            onClick={() => {
-                                setOpenLaunchQuizModal(false);
-                                setOpen(true);
-                            }}
-                            className="transition-all duration-300 flex items-center justify-center gap-3 px-6 py-5 text-sm font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 rounded-xl border-[1px] border-neutral-200 w-full"
-                        >
-                            <span className="text-neutral-900 dark:text-white">Cancel</span>
-                        </Button>
-                    )}
                 </div>
 
             </UtilityCard>

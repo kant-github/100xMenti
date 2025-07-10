@@ -193,49 +193,19 @@ export default class WebSocketServer {
 
         this.handleParticipantJoin(ws, sessionId, liveSessionCache);
         return;
-
-        // if (!this.isParticipantToken(ws.user)) {
-        //     this.sendError(ws, 'Invalid user type for joining quiz');
-        //     return;
-        // }
-
-        // if (!participantId) {
-        //     this.sendError(ws, 'Participant name is required');
-        //     return;
-        // }
-
-        // console.log("live session cache is : ", liveSessionCache);
-        // if (!liveSessionCache) {
-        //     this.sendError(ws, 'Quiz session has not been started by the host. Please wait for the host to start the session.');
-        //     return;
-        // }
-        // if (liveSessionCache.status === SessionStatus.COMPLETED) {
-        //     this.sendError(ws, 'Quiz session has already ended');
-        //     return;
-        // }
-
-        // if (liveSessionCache.status === SessionStatus.LIVE && !liveSessionCache.allowLateJoin) {
-        //     const existingParticipant = await this.redisService.getParticipant(sessionId, participantId)
-        //     if (!existingParticipant) {
-        //         this.sendError(ws, 'Quiz is already in progress and late joining is not allowed');
-        //         return;
-        //     }
-        //     console.log(`Allowing existing participant ${participantId} to rejoin session ${sessionId}`);
-        // }
-
-
-        // await this.addParticipantToRoom(ws, liveSessionCache, participantId)
     }
 
     private handleHostJoin(ws: CustomWebSocket, payload: any, liveSessionCache: LiveSessionCache | null) {
-
+        console.log("host has joined");
         const { sessionId } = payload;
-        if (!liveSessionCache || liveSessionCache.status !== SessionStatus.LIVE) {
+        console.log("live session cache : ", liveSessionCache);
+        if (!liveSessionCache) {
             this.handleCreateQuiz(ws, payload);
             return;
         }
 
         this.joinRoom(ws, sessionId);
+        console.log("logging sockets : ", this.roomMapping.get(sessionId));
         this.sendToSocket(ws, {
             type: MESSAGE_TYPES.QUIZ_CREATED,
             payload: {
@@ -360,7 +330,7 @@ export default class WebSocketServer {
             await this.redisService.addParticipant(liveSession.sessionId, newParticipant)
 
             this.joinRoom(ws, liveSession.sessionId);
-
+            console.log("logging sockets : ", this.roomMapping.get(liveSession.sessionId));
             this.sendToSocket(ws, {
                 type: MESSAGE_TYPES.JOINED_QUIZ,
                 payload: {

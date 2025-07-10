@@ -24,7 +24,9 @@ router.get('/get-owner-quizs', authMiddleware, getHostsQuizsController);
 router.post('/launch-quiz/:quizId', authMiddleware, verifyQuizOwnerMiddleware, launchQuizController);
 router.delete('/delete-quiz/:quizId', authMiddleware, verifyQuizOwnerMiddleware, deleteQuizController);
 router.post('/publish-quiz/:quizId', authMiddleware, verifyQuizOwnerMiddleware, publishQuizController);
-router.get('/live/:quizId', onLivePageHandler);
 router.post('/join-quiz/:sessionCode', joinQuizController);
 
+
+//live-quiz-controller
+router.get('/live/on-page/:quizId', onLivePageHandler);
 export default router;

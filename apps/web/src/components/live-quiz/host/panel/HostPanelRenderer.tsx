@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import LiveSessionCodeTicker from "@/components/ticker/LiveSessionCodeTicker";
 import { useHostEventSubscriptions } from "@/hooks/useHostEventSubscriptions";
 import WaitingLobbyHost from "../waitng-lobby/WaitingLobbyHost";
+import QuestionPreviewHost from "../question-preview/QuestionPreviewHost";
 
 export default function HostPannelRenderer() {
     const { liveSession } = useLiveSessionStore();
@@ -29,15 +30,13 @@ export default function HostPannelRenderer() {
             case HostScreen.QUESTION_ACTIVE:
                 return <LiveQuizQuestionActiveComponent />
             case HostScreen.QUESTION_PREVIEW:
-                return <div>questions</div>
+                return <QuestionPreviewHost />
         }
     }
 
     return (
         <div className="w-full h-screen overflow-hidden relative">
             <LiveSessionCodeTicker sessionCode={liveSession.sessionCode} />
-
-            
             {renderComponent()}
         </div>
     );

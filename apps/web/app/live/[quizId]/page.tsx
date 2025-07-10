@@ -10,6 +10,8 @@ import { useLiveQuizDataStore } from "@/zustand/liveQuizStore";
 import { useLiveSessionStore } from "@/zustand/liveSession";
 import axios from "axios";
 import { use, useEffect, useState } from "react"
+import AppLogo from "@/components/ui/AppLogo";
+import WaitingLobbyBottomTicker from "@/components/live-quiz/participant/waiting-lobby/WaitingLobbyBottomTicker";
 
 interface PageProps {
     params: Promise<{
@@ -30,7 +32,7 @@ export default function Home({ params }: PageProps) {
     const [token, setToken] = useState<string>('');
     const { setLiveQuiz } = useLiveQuizDataStore();
     const { setLiveSession } = useLiveSessionStore();
-    const { setParticipants } = useLiveQuizParticipantsStore()
+    const { participants, setParticipants } = useLiveQuizParticipantsStore()
     useWebSocket();
     useSubscribeToHandlers();
     useEffect(() => {
@@ -70,10 +72,12 @@ export default function Home({ params }: PageProps) {
     }, [token])
 
     return (
-        <div>
+        <div className="relative">
+            {/* <AppLogo className="absolute left-3 top-2 z-1" /> */}
             {type === UserType.UNKNOWN && <div>loading</div>}
             {type === UserType.HOST && <HostPannelRenderer />}
             {type === UserType.USER && <ParticipantPannelRenderer />}
+            <WaitingLobbyBottomTicker participants={participants} />
         </div>
     )
 }

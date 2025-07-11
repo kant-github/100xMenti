@@ -28,10 +28,13 @@ export default class WebSocketServer {
 
     private initialize() {
         this.wss.on('connection', (ws: CustomWebSocket, request) => {
+            console.log("socket came --------------->");
             if (!this.authenticateConnection(ws, request)) {
+                this.sendError(ws, 'unauthorised');
                 return;
             }
-
+            console.log("authoqiesd");
+            ws.send("hey");
             const newWebSocketId = uuid()
             ws.id = newWebSocketId;
             this.socketMapping.set(newWebSocketId, ws);
@@ -170,6 +173,7 @@ export default class WebSocketServer {
         this.broadcastToRoom(sessionId, {
             type: MESSAGE_TYPES.QUESTION_MOTIVATION,
             payload: {
+                phase: 'MOTIVATION',
                 message: "Answer quickly to get more points",
             }
         })
@@ -233,7 +237,8 @@ export default class WebSocketServer {
 
         await this.redisService.updateSession(sessionId, {
             currentQuestionPhase: 'ANSWERING',
-            questionEndTime
+            questionEndTime,
+            participantScreen: ParticipantScreen.QUESTION_ACTIVE
         })
 
         this.broadcastToRoom(sessionId, {

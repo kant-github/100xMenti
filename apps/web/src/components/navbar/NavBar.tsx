@@ -24,7 +24,7 @@ export default function NavBar() {
 
     console.log(session);
     return (
-        <div className="w-full h-20 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-between px-12">
+        <div className="w-full h-20 bg-neutral-100 flex items-center justify-between px-12">
             <AppLogo />
             <div className="flex items-center justify-center gap-4">
                 <Button onClick={() => setOpenJoinQuizModal(true)} className="min-w-[120px] px-6 py-5 bg-neutral-900 text-white hover:bg-neutral-800 transition rounded-xl">

@@ -1,6 +1,5 @@
-import { HostScreen, SessionStatus } from "@/types/types";
+import { HostScreen } from "@/types/types";
 import { useLiveSessionStore } from "@/zustand/liveSession";
-import LiveQuizQuestionActiveComponent from "../../common/LiveQuizQuestionActiveComponent";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useEffect } from "react";
 import LiveSessionCodeTicker from "@/components/ticker/LiveSessionCodeTicker";
@@ -27,8 +26,6 @@ export default function HostPannelRenderer() {
         switch (liveSession.hostScreen) {
             case HostScreen.LOBBY:
                 return <WaitingLobbyHost />
-            case HostScreen.QUESTION_ACTIVE:
-                return <LiveQuizQuestionActiveComponent />
             case HostScreen.QUESTION_PREVIEW:
                 return <QuestionPreviewHost />
         }

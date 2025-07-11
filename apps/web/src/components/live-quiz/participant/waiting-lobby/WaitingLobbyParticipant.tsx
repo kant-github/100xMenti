@@ -30,9 +30,6 @@ export default function WaitingLobbyParticipant() {
         }
     }, [liveSession.id, liveSession.quizId])
 
-
-
-
     function changeName(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (participantName.length < 3) {
@@ -51,7 +48,7 @@ export default function WaitingLobbyParticipant() {
     }
 
     return (
-        <div className="min-h-screen bg-neutral-100">
+        <div className="min-h-screen">
             <div className='grid grid-cols-[70%_30%]'>
                 <WaitingLobbyLeftCommon />
                 <div className='h-screen border-l-[1px] border-neutral-300 shadow-xl z-[60] rounded-l-xl transform transition-transform ease-in-out duration-300 overflow-hidden flex flex-col justify-between bg-neutral-200 p-6 '>

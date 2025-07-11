@@ -18,10 +18,10 @@ const templates: Template[] = [
     {
         id: 'PASTEL',
         name: 'Pastel Dream',
-        bg: '#3836d6',
+        bg: '#0065F8',
         textColor: '#EEEEEE',
-        design: 'staircase',
-        accent: '#9EC6F3',
+        design: 'slash',
+        accent: '#0065F8',
         bars: ['#06D001', '#000000', '#FF6500', '#FFC107'] as [string, string, string, string],
     },
     {
@@ -39,7 +39,7 @@ const templates: Template[] = [
         name: 'Yellow Mellow',
         bg: '#FFC107',
         textColor: '#000000',
-        design: 'staircase',
+        design: 'donut',
         designColor: '#DC2525',
         accent: '#FFCC00',
         bars: ['#06923E', '#DC2525', '#FFF2EB', '#030303'] as [string, string, string, string],

@@ -2,8 +2,14 @@ import { useLiveQuizParticipantsStore } from "@/zustand/liveQuizParticipants";
 import WaitingLobbyAvatar, { Position } from "../participant/waiting-lobby/WaitingLobbyAvatar";
 import WaitingLobbyBottomTicker from "../participant/waiting-lobby/WaitingLobbyBottomTicker";
 import { useState, useEffect } from "react";
+import DesignElementsBackground from "@/components/ui/DesignElementsBackground";
+import { Template } from "@/lib/templates";
 
-export default function WaitingLobbyLeftCommon() {
+interface WaitingLobbyLeftCommonProps {
+    template: Template
+}
+
+export default function WaitingLobbyLeftCommon({template}: WaitingLobbyLeftCommonProps) {
     const { participants } = useLiveQuizParticipantsStore()
 
     const avatarSize = 100;
@@ -103,7 +109,11 @@ export default function WaitingLobbyLeftCommon() {
 
     return (
         <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
-            {participants.slice(0,20).map((p, index) => {
+            <DesignElementsBackground
+                design={template.design}
+                accentColor={template.designColor}
+            />
+            {participants.slice(0, 20).map((p, index) => {
                 const position = positions[index];
                 if (!position) {
                     return null;

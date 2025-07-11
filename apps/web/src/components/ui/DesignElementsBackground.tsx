@@ -6,7 +6,7 @@ interface DesignBackgroundProps {
     accentColor: string;
 }
 
-export default function DesignBackground({ design, accentColor }: DesignBackgroundProps) {
+export default function DesignElementsBackground({ design, accentColor }: DesignBackgroundProps) {
     const getDesignElement = () => {
         switch (design) {
             case 'circle':
@@ -15,13 +15,19 @@ export default function DesignBackground({ design, accentColor }: DesignBackgrou
                         className="absolute inset-0 overflow-hidden rounded-xl"
                         style={{ zIndex: 0 }}
                     >
-                        <div
-                            className="absolute -top-1/2 -right-1/2 w-[150%] h-[150%] rounded-full"
-                            style={{
-                                backgroundColor: accentColor,
-                                opacity: 0.1,
-                            }}
-                        />
+                        <svg
+                            className="absolute -top-1/2 -right-1/2 w-[150%] h-[150%]"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="xMidYMid meet"
+                        >
+                            <circle
+                                cx="50"
+                                cy="50"
+                                r="45"
+                                fill={accentColor}
+                                opacity="0.1"
+                            />
+                        </svg>
                     </div>
                 );
 
@@ -31,14 +37,17 @@ export default function DesignBackground({ design, accentColor }: DesignBackgrou
                         className="absolute inset-0 overflow-hidden rounded-xl"
                         style={{ zIndex: 0 }}
                     >
-                        {/* Multiple staircase steps */}
-                        <div
-                            className="absolute -top-1/2 -right-1/2 w-[150%] h-[150%] aspect-square rotate-45"
-                            style={{
-                                backgroundColor: accentColor,
-                                opacity: 0.1,
-                            }}
-                        />
+                        <svg
+                            className="absolute -top-1/2 -right-1/2 w-[150%] h-[150%]"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                        >
+                            <path
+                                d="M 0 100 L 100 0 L 100 100 Z"
+                                fill={accentColor}
+                                opacity="0.1"
+                            />
+                        </svg>
                     </div>
                 );
 

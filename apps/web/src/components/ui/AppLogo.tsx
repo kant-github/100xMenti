@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from "@/lib/utils"
+import { GiBestialFangs } from "react-icons/gi";
 
 interface AppLogoProps {
     className?: string
@@ -8,14 +9,15 @@ interface AppLogoProps {
 
 export default function AppLogo({ className }: AppLogoProps) {
     return (
-        <div className={cn("text-xl flex items-center justify-center font-black",
+        <div className={cn("text-xl flex items-center justify-center gap-x-2 font-black",
             className
         )}>
-
-            <span className="text-stroke text-neutral-600">100</span>
-            <span className="text-blue-600">x</span>
-            <span>Menti</span>
-
+            <GiBestialFangs size={35} className="text-emerald-800" />
+            <div className="flex items-center gap-x-0.5 text-neutral-900">
+                <span className="">100</span>
+                <span className="text-blue-600">x</span>
+                <span className="">Menti</span>
+            </div>
         </div>
     )
 }

@@ -8,9 +8,12 @@ const templates: Template[] = [
     {
         id: 'MODERN',
         name: 'Electric Modern',
-        bg: '#F5F5F5',
-        accent: '#d1beff',
-        bars: ['#640D5F', '#D91656', '#EB5B00', '#FFB200'] as [string, string, string, string],
+        bg: '#ff80ab',
+        textColor: '#000000',
+        design: 'wave',
+        designColor: '#EEEEEE',
+        accent: '#ff91b6',
+        bars: ['#196cff', '#ffd439', '#FF2929', '#0e6b45'] as [string, string, string, string],
     },
     {
         id: 'PASTEL',
@@ -59,7 +62,7 @@ export interface Template {
     name: string;
     bg: string;
     textColor?: string;
-    design?: 'circle' | 'staircase' | 'wave' | 'hexagon' | 'diamond' | 'triangle' | 'spiral' | 'gradient' | 'dots';
+    design?: 'circle' | 'staircase' | 'wave' | 'hexagon' | 'diamond' | 'triangle' | 'spiral' | 'gradient' | 'dots' | 'donut' | 'slash';
     designColor?: string;
     accent?: string;
     bars: [string, string, string, string];

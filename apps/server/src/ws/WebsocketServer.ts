@@ -6,7 +6,7 @@ import { prisma } from "../lib/prisma";
 import jwt from 'jsonwebtoken';
 import RedisSessionService from "../service/RedisSessionService";
 import { LiveSessionCache, ParticipantDataCache } from "../types/RedisLiveSessionTypes";
-import { HostScreen, ParticipantScreen, SessionStatus } from "@prisma/client";
+import { HostScreen, ParticipantScreen, Question, SessionStatus } from "@prisma/client";
 import { DatabaseQueue } from "../queue/databaseQueue";
 interface WebSocketMessage {
     type: string;
@@ -86,6 +86,9 @@ export default class WebSocketServer {
             case MESSAGE_TYPES.START_QUIZ:
                 this.handleStartQuiz(ws, payload);
                 break;
+            case MESSAGE_TYPES.LAUNCH_QUESTION:
+                this.handleLaunchQuestion(ws, payload);
+                break;
             case MESSAGE_TYPES.LEAVE_QUIZ:
                 this.handleLeaveQuiz()
                 break;
@@ -98,6 +101,166 @@ export default class WebSocketServer {
             default:
                 throw new Error('Unknown type came')
         }
+    }
+
+    private async handleLaunchQuestion(ws: CustomWebSocket, payload: any) {
+        if (!this.isHostToken(ws.user)) {
+            this.sendError(ws, "Only host can launch the question")
+            return;
+        }
+
+        const { sessionId } = payload;
+
+        const liveSession = await this.redisService.getLiveSession(sessionId);
+        if (!liveSession) {
+            this.sendError(ws, "Session is not found")
+            return;
+        }
+        if (liveSession.status !== SessionStatus.LIVE) {
+            this.sendError(ws, "Quiz is not live");
+            return;
+        }
+
+
+        try {
+            const quiz = await prisma.quiz.findUnique({
+                where: { id: liveSession.quizId },
+                include: {
+                    questions: {
+                        orderBy: { createdAt: 'asc' }
+                    }
+                }
+            });
+
+            if (!quiz || !quiz.questions.length) {
+                this.sendError(ws, 'No questions found');
+                return;
+            }
+
+
+            const currentQuestion = quiz.questions[liveSession.currentQuestionIndex];
+            if (!currentQuestion) {
+                this.sendError(ws, 'Question not found');
+                return;
+            }
+
+            await this.redisService.updateSession(sessionId, {
+                currentQuestionId: currentQuestion.id,
+                currentQuestionPhase: 'MOTIVATION',
+                questionData: currentQuestion,
+                questionStartTime: new Date(),
+                hostScreen: HostScreen.QUESTION_ACTIVE,
+                participantScreen: ParticipantScreen.COUNTDOWN
+            })
+
+            DatabaseQueue.updateLiveSession(sessionId, {
+                currentQuestionId: currentQuestion.id,
+                hostScreen: HostScreen.QUESTION_ACTIVE,
+                participantScreen: ParticipantScreen.COUNTDOWN
+            })
+
+            this.startMotivationPhase(sessionId, currentQuestion)
+        } catch (err) {
+            console.error('Error launching question:', err);
+            this.sendError(ws, 'Failed to launch question');
+        }
+    }
+
+    private async startMotivationPhase(sessionId: string, question: Question) {
+        this.broadcastToRoom(sessionId, {
+            type: MESSAGE_TYPES.QUESTION_MOTIVATION,
+            payload: {
+                message: "Answer quickly to get more points",
+            }
+        })
+
+        const hostSocket = this.getHostSocket(sessionId);
+        if (hostSocket) {
+            this.sendToSocket(hostSocket, {
+                type: MESSAGE_TYPES.QUESTION_MOTIVATION,
+                payload: {
+                    phase: 'MOTIVATION',
+                    questionData: question,
+                    // participantCount: await this.getActiveParticipantCount(sessionId)
+                }
+            });
+        }
+
+        setTimeout(() => {
+            this.startReadingPhase(sessionId, question);
+        }, 3000)
+    }
+
+    private async startReadingPhase(sessionId: string, question: Question) {
+        const readingEndTime = new Date(Date.now() + 5000);
+
+        await this.redisService.updateSession(sessionId, {
+            currentQuestionPhase: 'READING',
+            readingPhaseEndTime: readingEndTime
+        })
+
+        this.broadcastToRoom(sessionId, {
+            type: MESSAGE_TYPES.QUESTION_READING,
+            payload: {
+                questionId: question.id,
+                title: question.title,
+                type: question.type,
+                points: question.points,
+                readingTimeLeft: 5000,
+            }
+        })
+
+        const hostSocket = this.getHostSocket(sessionId);
+        if (hostSocket) {
+            this.sendToSocket(hostSocket, {
+                type: MESSAGE_TYPES.QUESTION_READING,
+                payload: {
+                    phase: 'READING',
+                    timeLeft: 5000,
+                    questionData: question
+                }
+            });
+        }
+
+        setTimeout(() => {
+            this.startAnsweringPhase(sessionId, question);
+        }, 5000);
+
+    }
+
+    private async startAnsweringPhase(sessionId: string, question: Question) {
+        const questionEndTime = new Date(Date.now() + (question.timing * 1000));
+
+        await this.redisService.updateSession(sessionId, {
+            currentQuestionPhase: 'ANSWERING',
+            questionEndTime
+        })
+
+        this.broadcastToRoom(sessionId, {
+            type: MESSAGE_TYPES.QUESTION_ANSWERING,
+            payload: {
+                questionId: question.id,
+                title: question.title,
+                type: question.type,
+                points: question.points,
+                options: question.options,
+                timeLimit: question.timing,
+                timeLeft: question.timing * 1000,
+            }
+        });
+    }
+
+    private getHostSocket(sessionId: string): CustomWebSocket | null {
+        const socketIds = this.roomMapping.get(sessionId);
+        if (!socketIds) return null;
+
+        for (const socketId of socketIds) {
+            const socket = this.socketMapping.get(socketId);
+            if (socket && this.isHostToken(socket.user)) {
+                return socket;
+            }
+        }
+        return null;
     }
 
     private async handleStartQuiz(ws: CustomWebSocket, payload: any) {
@@ -196,16 +359,13 @@ export default class WebSocketServer {
     }
 
     private handleHostJoin(ws: CustomWebSocket, payload: any, liveSessionCache: LiveSessionCache | null) {
-        console.log("host has joined");
         const { sessionId } = payload;
-        console.log("live session cache : ", liveSessionCache);
         if (!liveSessionCache) {
             this.handleCreateQuiz(ws, payload);
             return;
         }
 
         this.joinRoom(ws, sessionId);
-        console.log("logging sockets : ", this.roomMapping.get(sessionId));
         this.sendToSocket(ws, {
             type: MESSAGE_TYPES.QUIZ_CREATED,
             payload: {
@@ -276,6 +436,11 @@ export default class WebSocketServer {
             allowLateJoin: false,
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
+
+            currentQuestionPhase: null,
+            questionData: null,
+            questionEndTime: null,
+            readingPhaseEndTime: null
         }
         await this.redisService.createSession(sessionId, liveSessionCache);
 

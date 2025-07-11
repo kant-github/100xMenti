@@ -14,6 +14,11 @@ export interface LiveSessionCache {
     questionStartTime?: Date | null;
     participants?: Map<string, ParticipantDataCache>;
     createdAt?: Date;
+
+    currentQuestionPhase: 'MOTIVATION' | 'READING' | 'ANSWERING' | null;
+    questionData: any;
+    questionEndTime: Date | null;
+    readingPhaseEndTime: Date | null;
 }
 
 // Redis cache type for participant data

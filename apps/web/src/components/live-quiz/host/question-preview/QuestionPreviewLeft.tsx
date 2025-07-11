@@ -16,7 +16,7 @@ export default function QuestionPreviewLeft({ selectedTemplate }: QuestionPrevie
     console.log("selected color template", selectedTemplate);
     return (
         <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
-            <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-lg flex flex-col border-3 border-neutral-700 relative overflow-hidden"
+            <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[550px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-xl flex flex-col border-3 border-neutral-700 relative overflow-hidden"
                 style={{
                     backgroundColor: selectedTemplate.bg,
                     color: selectedTemplate.textColor,
@@ -29,7 +29,7 @@ export default function QuestionPreviewLeft({ selectedTemplate }: QuestionPrevie
                 />
 
                 <div className="relative z-10">
-                    <div className="text-center font-light text-3xl tracking-wide">{currentQ.title}</div>
+                    <div className="text-center font-extralight text-3xl tracking-wider">{currentQ.title}</div>
                 </div>
 
                 <div className="w-full max-w-3xl h-full flex items-end justify-center gap-4 relative z-10">

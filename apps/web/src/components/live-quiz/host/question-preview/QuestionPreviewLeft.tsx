@@ -1,20 +1,20 @@
 import DesignElementsBackground from "@/components/ui/DesignElementsBackground";
 import QuestionCanvas from "@/components/ui/QuestionCanvas";
 import { Template } from "@/lib/templates"
+import { QuizType } from "@/types/types";
 import { useLiveQuestionPreviewCount } from "@/zustand/live-quiz-store/useLiveQuestionPreviewCount";
 import { useLiveQuizDataStore } from "@/zustand/liveQuizStore"
 import { IoIosCheckmark } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
 
 interface QuestionPreviewLeftProps {
-    selectedTemplate: Template
+    selectedTemplate: Template;
+    liveQuiz: QuizType;
+    currentQuestionIx: number;
 }
 
-export default function QuestionPreviewLeft({ selectedTemplate }: QuestionPreviewLeftProps) {
-    const { liveQuiz } = useLiveQuizDataStore()
-    const { currentQuestionIx } = useLiveQuestionPreviewCount();
+export default function QuestionPreviewLeft({ selectedTemplate, liveQuiz, currentQuestionIx }: QuestionPreviewLeftProps) {
     const currentQ = liveQuiz.questions[currentQuestionIx];
-    console.log("selected color template", selectedTemplate);
     return (
         <div className="w-full max-w-5xl h-screen max-h-[900px] flex items-center justify-center relative">
             <QuestionCanvas template={selectedTemplate}>

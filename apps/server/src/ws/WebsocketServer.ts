@@ -160,21 +160,20 @@ export default class WebSocketServer {
             await this.redisService.updateSession(sessionId, {
                 currentQuestionId: question.id,
                 currentQuestionIndex: questionIdx,
-                currentQuestionPhase: 'MOTIVATION',
                 questionData: question,
                 questionStartTime: new Date(),
                 hostScreen: HostScreen.QUESTION_ACTIVE,
-                participantScreen: ParticipantScreen.COUNTDOWN
+                participantScreen: ParticipantScreen.MOTIVATION
             })
-
+            console.log("redis cache for live session is : ", await this.redisService.getLiveSession(sessionId));
             DatabaseQueue.updateLiveSession(sessionId, {
                 currentQuestionId: question.id,
                 currentQuestionIndex: questionIdx,
                 hostScreen: HostScreen.QUESTION_ACTIVE,
-                participantScreen: ParticipantScreen.COUNTDOWN
+                participantScreen: ParticipantScreen.MOTIVATION
             })
 
-            this.startMotivationPhase(ws,sessionId, question);
+            this.startMotivationPhase(ws, sessionId, question);
         } catch (err) {
             console.error('Error launching question:', err);
             this.sendError(ws, 'Failed to launch question');
@@ -186,9 +185,10 @@ export default class WebSocketServer {
             type: MESSAGE_TYPES.QUESTION_MOTIVATION,
             payload: {
                 phase: 'MOTIVATION',
+                participantScreen: ParticipantScreen.MOTIVATION,
                 message: "Answer quickly to get more points",
             }
-        })
+        }, hostSocket.id);
 
         if (hostSocket) {
             this.sendToSocket(hostSocket, {
@@ -203,27 +203,34 @@ export default class WebSocketServer {
 
         setTimeout(() => {
             this.startReadingPhase(hostSocket, sessionId, question);
-        }, 3000)
+        }, 5000)
     }
 
     private async startReadingPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
         const readingEndTime = new Date(Date.now() + 5000);
-
+        
         await this.redisService.updateSession(sessionId, {
-            currentQuestionPhase: 'READING',
+            participantScreen: ParticipantScreen.COUNTDOWN,
             readingPhaseEndTime: readingEndTime
+        })
+        
+        console.log("redis cache for live session is in reading phase : ", await this.redisService.getLiveSession(sessionId));
+
+        DatabaseQueue.updateLiveSession(sessionId, {
+            participantScreen: ParticipantScreen.COUNTDOWN
         })
 
         this.broadcastToRoom(sessionId, {
             type: MESSAGE_TYPES.QUESTION_READING,
             payload: {
+                phase: 'QUESTION_READING',
                 questionId: question.id,
                 title: question.title,
                 type: question.type,
                 points: question.points,
                 readingTimeLeft: 5000,
             }
-        })
+        }, hostSocket.id)
 
         if (hostSocket) {
             this.sendToSocket(hostSocket, {
@@ -239,15 +246,18 @@ export default class WebSocketServer {
         setTimeout(() => {
             this.startAnsweringPhase(sessionId, question);
         }, 5000);
-
     }
 
     private async startAnsweringPhase(sessionId: string, question: Question) {
         const questionEndTime = new Date(Date.now() + (question.timing * 1000));
 
         await this.redisService.updateSession(sessionId, {
-            currentQuestionPhase: 'ANSWERING',
             questionEndTime,
+            participantScreen: ParticipantScreen.QUESTION_ACTIVE
+        })
+
+        DatabaseQueue.updateLiveSession(sessionId, {
+            hostScreen: HostScreen.QUESTION_ACTIVE,
             participantScreen: ParticipantScreen.QUESTION_ACTIVE
         })
 
@@ -439,7 +449,6 @@ export default class WebSocketServer {
             questionStartTime: null,
             participants: new Map<string, ParticipantDataCache>(),
 
-            currentQuestionPhase: null,
             questionData: null,
             questionEndTime: null,
             readingPhaseEndTime: null

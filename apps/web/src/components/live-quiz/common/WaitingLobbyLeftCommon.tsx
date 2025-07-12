@@ -113,6 +113,11 @@ export default function WaitingLobbyLeftCommon({template}: WaitingLobbyLeftCommo
                 design={template.design}
                 accentColor={template.designColor}
             />
+            {participants.length === 0 && (
+                <div className="text-3xl font-extralight tracking-wider">
+                    Wait for participants to hop on !!
+                </div>
+            )}
             {participants.slice(0, 20).map((p, index) => {
                 const position = positions[index];
                 if (!position) {

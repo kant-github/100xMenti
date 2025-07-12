@@ -40,6 +40,7 @@ export enum HostScreen {
 
 export enum ParticipantScreen {
   LOBBY = 'LOBBY',
+  MOTIVATION = 'MOTIVATION',
   COUNTDOWN = 'COUNTDOWN',
   QUESTION_ACTIVE = 'QUESTION_ACTIVE',
   QUESTION_RESULTS = 'QUESTION_RESULTS',

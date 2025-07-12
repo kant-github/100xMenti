@@ -17,23 +17,13 @@ interface WaitingLobbyParticipantProps {
     template: Template
 }
 
-export default function WaitingLobbyParticipant({template}: WaitingLobbyParticipantProps) {
-    const { sendJoinQuizMessage, sendNameChangeMessage } = useWebSocket();
-    const { liveSession } = useLiveSessionStore()
+export default function WaitingLobbyParticipant({ template }: WaitingLobbyParticipantProps) {
     const { liveQuiz } = useLiveQuizDataStore()
     const { toast } = useToast();
     const { participant, setParticipant } = useliveQuizMeParticipantStore()
     const [participantName, setParticipantName] = useState<string>(participant?.name);
 
-    useEffect(() => {
-        if (liveSession.id && liveSession.quizId) {
-            const data = {
-                quizId: liveSession.quizId,
-                sessionId: liveSession.id
-            }
-            sendJoinQuizMessage(data);
-        }
-    }, [liveSession.id, liveSession.quizId])
+    const { sendNameChangeMessage } = useWebSocket();
 
     function changeName(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();

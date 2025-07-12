@@ -173,7 +173,8 @@ enum HostScreen {
 
 enum ParticipantScreen {
   LOBBY // Waiting for host to start
-  COUNTDOWN // 3-2-1 countdown
+  MOTIVATION // Motivating screen for 3s
+  COUNTDOWN // 5-4-3-2-1 countdown
   QUESTION_ACTIVE // Answering question
   QUESTION_RESULTS // Viewing correct answer
   LEADERBOARD // Viewing current standings

@@ -6,10 +6,14 @@ import LiveSessionCodeTicker from "@/components/ticker/LiveSessionCodeTicker";
 import { useHostEventSubscriptions } from "@/hooks/useHostEventSubscriptions";
 import WaitingLobbyHost from "../waitng-lobby/WaitingLobbyHost";
 import QuestionPreviewHost from "../question-preview/QuestionPreviewHost";
+import templates from "@/lib/templates";
+import { useLiveQuizDataStore } from "@/zustand/liveQuizStore";
 
 export default function HostPannelRenderer() {
     const { liveSession } = useLiveSessionStore();
+    const { liveQuiz } = useLiveQuizDataStore();
     const { sendJoinQuizMessage } = useWebSocket();
+    const selectedTemplate = templates.find(t => t.id === liveQuiz.template);
     useHostEventSubscriptions();
 
     useEffect(() => {
@@ -32,7 +36,10 @@ export default function HostPannelRenderer() {
     }
 
     return (
-        <div className="w-full h-screen overflow-hidden relative">
+        <div style={{
+            backgroundColor: `${selectedTemplate.accent}`,
+            color: `${selectedTemplate.textColor}`
+        }} className="w-full h-screen overflow-hidden relative">
             <LiveSessionCodeTicker sessionCode={liveSession.sessionCode} />
             {renderComponent()}
         </div>

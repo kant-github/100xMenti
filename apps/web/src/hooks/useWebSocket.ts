@@ -68,6 +68,14 @@ export const useWebSocket = () => {
         webSocketRef.current.sendMessage(message);
     }
 
+    function sendLaunchQuestion(data: any) {
+        const message = {
+            type: MESSAGE_TYPES.LAUNCH_QUESTION,
+            payload: data
+        }
+        webSocketRef.current.sendMessage(message);
+    }
+
     return {
         subscribeToHandler,
         unSubscribeToHandler,
@@ -75,6 +83,7 @@ export const useWebSocket = () => {
         sendJoinQuizMessage,
         sendLike,
         sendNameChangeMessage,
-        sendStartQuizMessage
+        sendStartQuizMessage,
+        sendLaunchQuestion
     }
 }

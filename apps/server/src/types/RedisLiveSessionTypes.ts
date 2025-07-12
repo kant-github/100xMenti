@@ -15,7 +15,6 @@ export interface LiveSessionCache {
     participants?: Map<string, ParticipantDataCache>;
     createdAt?: Date;
 
-    currentQuestionPhase: 'MOTIVATION' | 'READING' | 'ANSWERING' | null;
     questionData: any;
     questionEndTime: Date | null;
     readingPhaseEndTime: Date | null;

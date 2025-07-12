@@ -87,7 +87,7 @@ export default class WebSocketClient {
                 this.emit(MESSAGE_TYPES.QUESTION_MOTIVATION, payload);
                 break;
             case MESSAGE_TYPES.QUESTION_READING:
-                this.emit(MESSAGE_TYPES.QUESTION_MOTIVATION, payload);
+                this.emit(MESSAGE_TYPES.QUESTION_READING, payload);
                 break;
             case MESSAGE_TYPES.PARTICIPANT_LEFT:
                 this.emit(MESSAGE_TYPES.PARTICIPANT_LEFT, payload);

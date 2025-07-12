@@ -208,12 +208,12 @@ export default class WebSocketServer {
 
     private async startReadingPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
         const readingEndTime = new Date(Date.now() + 5000);
-        
+
         await this.redisService.updateSession(sessionId, {
             participantScreen: ParticipantScreen.COUNTDOWN,
             readingPhaseEndTime: readingEndTime
         })
-        
+
         console.log("redis cache for live session is in reading phase : ", await this.redisService.getLiveSession(sessionId));
 
         DatabaseQueue.updateLiveSession(sessionId, {

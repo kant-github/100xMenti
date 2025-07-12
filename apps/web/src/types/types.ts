@@ -146,3 +146,16 @@ export interface QuestionResponseType {
   questionId: string;
   question?: QuestionType;
 }
+
+export interface LiveQuestionType {
+  id: string;
+  title?: string;
+  type?: QuestionType;
+  points?: number;
+  options?: string[];
+  correctAnswer?: number | null;
+  timing?: number;
+  correctBoolean?: boolean | null;
+  quiz_id?: string;
+  QuestionResponse?: QuestionResponseType[];
+}

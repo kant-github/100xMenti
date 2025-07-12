@@ -11,8 +11,13 @@ import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/button';
 import { ParticipantType } from '@/types/types';
 import WaitingLobbyLeftCommon from '../../common/WaitingLobbyLeftCommon';
+import { Template } from '@/lib/templates';
 
-export default function WaitingLobbyParticipant() {
+interface WaitingLobbyParticipantProps {
+    template: Template
+}
+
+export default function WaitingLobbyParticipant({template}: WaitingLobbyParticipantProps) {
     const { sendJoinQuizMessage, sendNameChangeMessage } = useWebSocket();
     const { liveSession } = useLiveSessionStore()
     const { liveQuiz } = useLiveQuizDataStore()
@@ -50,7 +55,7 @@ export default function WaitingLobbyParticipant() {
     return (
         <div className="min-h-screen">
             <div className='grid grid-cols-[70%_30%]'>
-                <WaitingLobbyLeftCommon />
+                <WaitingLobbyLeftCommon template={template} />
                 <div className='h-screen border-l-[1px] border-neutral-300 shadow-xl z-[60] rounded-l-xl transform transition-transform ease-in-out duration-300 overflow-hidden flex flex-col justify-between bg-neutral-200 p-6 '>
                     <div className='flex flex-col space-y-4'>
                         <h2 className='text-lg font-bold text-zinc-800 mb-2'># Quiz Details</h2>

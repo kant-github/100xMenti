@@ -11,12 +11,12 @@ export default function ParticipantPannelRenderer() {
     const { liveQuiz } = useLiveQuizDataStore()
     const selectedTemplate = templates.find(t => t.id === liveQuiz.template);
 
-    // liveSession.participantScreen = ParticipantScreen.COUNTDOWN;
+    liveSession.participantScreen = ParticipantScreen.COUNTDOWN;
 
     function renderComponent() {
         switch (liveSession.participantScreen) {
             case ParticipantScreen.LOBBY:
-                return <WaitingLobbyParticipant />
+                return <WaitingLobbyParticipant template={selectedTemplate} />
             case ParticipantScreen.COUNTDOWN:
                 return <Countdown selectedTemplate={selectedTemplate} />
 

@@ -112,7 +112,12 @@ export default class WebSocketServer {
             return;
         }
 
-        const { sessionId } = payload;
+        const { sessionId, questionId } = payload;
+
+        if (!questionId) {
+            this.sendError(ws, "Question ID is required");
+            return;
+        }
 
         const liveSession = await this.redisService.getLiveSession(sessionId);
         if (!liveSession) {
@@ -124,8 +129,8 @@ export default class WebSocketServer {
             return;
         }
 
-
         try {
+
             const quiz = await prisma.quiz.findUnique({
                 where: { id: liveSession.quizId },
                 include: {
@@ -139,37 +144,44 @@ export default class WebSocketServer {
                 this.sendError(ws, 'No questions found');
                 return;
             }
+            const question = quiz.questions.find(q => q.id === questionId);
+            if (!question) {
+                this.sendError(ws, 'Question not found or does not belong to this quiz');
+                return;
+            }
 
+            const questionIdx = quiz.questions.findIndex(q => q.id === questionId);
 
-            const currentQuestion = quiz.questions[liveSession.currentQuestionIndex];
-            if (!currentQuestion) {
-                this.sendError(ws, 'Question not found');
+            if (!quiz || !quiz.questions.length) {
+                this.sendError(ws, 'No questions found');
                 return;
             }
 
             await this.redisService.updateSession(sessionId, {
-                currentQuestionId: currentQuestion.id,
+                currentQuestionId: question.id,
+                currentQuestionIndex: questionIdx,
                 currentQuestionPhase: 'MOTIVATION',
-                questionData: currentQuestion,
+                questionData: question,
                 questionStartTime: new Date(),
                 hostScreen: HostScreen.QUESTION_ACTIVE,
                 participantScreen: ParticipantScreen.COUNTDOWN
             })
 
             DatabaseQueue.updateLiveSession(sessionId, {
-                currentQuestionId: currentQuestion.id,
+                currentQuestionId: question.id,
+                currentQuestionIndex: questionIdx,
                 hostScreen: HostScreen.QUESTION_ACTIVE,
                 participantScreen: ParticipantScreen.COUNTDOWN
             })
 
-            this.startMotivationPhase(sessionId, currentQuestion)
+            this.startMotivationPhase(ws,sessionId, question);
         } catch (err) {
             console.error('Error launching question:', err);
             this.sendError(ws, 'Failed to launch question');
         }
     }
 
-    private async startMotivationPhase(sessionId: string, question: Question) {
+    private async startMotivationPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
         this.broadcastToRoom(sessionId, {
             type: MESSAGE_TYPES.QUESTION_MOTIVATION,
             payload: {
@@ -178,7 +190,6 @@ export default class WebSocketServer {
             }
         })
 
-        const hostSocket = this.getHostSocket(sessionId);
         if (hostSocket) {
             this.sendToSocket(hostSocket, {
                 type: MESSAGE_TYPES.QUESTION_MOTIVATION,
@@ -191,11 +202,11 @@ export default class WebSocketServer {
         }
 
         setTimeout(() => {
-            this.startReadingPhase(sessionId, question);
+            this.startReadingPhase(hostSocket, sessionId, question);
         }, 3000)
     }
 
-    private async startReadingPhase(sessionId: string, question: Question) {
+    private async startReadingPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
         const readingEndTime = new Date(Date.now() + 5000);
 
         await this.redisService.updateSession(sessionId, {
@@ -214,7 +225,6 @@ export default class WebSocketServer {
             }
         })
 
-        const hostSocket = this.getHostSocket(sessionId);
         if (hostSocket) {
             this.sendToSocket(hostSocket, {
                 type: MESSAGE_TYPES.QUESTION_READING,
@@ -253,19 +263,6 @@ export default class WebSocketServer {
                 timeLeft: question.timing * 1000,
             }
         });
-    }
-
-    private getHostSocket(sessionId: string): CustomWebSocket | null {
-        const socketIds = this.roomMapping.get(sessionId);
-        if (!socketIds) return null;
-
-        for (const socketId of socketIds) {
-            const socket = this.socketMapping.get(socketId);
-            if (socket && this.isHostToken(socket.user)) {
-                return socket;
-            }
-        }
-        return null;
     }
 
     private async handleStartQuiz(ws: CustomWebSocket, payload: any) {

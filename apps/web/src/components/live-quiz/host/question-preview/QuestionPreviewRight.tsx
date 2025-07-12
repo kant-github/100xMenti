@@ -1,6 +1,5 @@
 import { useLiveQuizDataStore } from "@/zustand/liveQuizStore";
 import InfoCard from "../../common/InfoCard";
-import { ChevronLeft, ChevronRight, } from 'lucide-react'
 import { useLiveQuestionPreviewCount } from "@/zustand/live-quiz-store/useLiveQuestionPreviewCount";
 import { Template } from "@/lib/templates";
 

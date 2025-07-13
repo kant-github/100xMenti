@@ -1,23 +1,30 @@
 'use client'
-
 import { cn } from "@/lib/utils"
-import { GiWoodenSign } from "react-icons/gi";
-
+import Image from "next/image";
 
 interface AppLogoProps {
-    className?: string
+    className?: string;
+    style?: React.CSSProperties;
 }
 
-export default function AppLogo({ className }: AppLogoProps) {
+export default function AppLogo({ className, style }: AppLogoProps) {
     return (
-        <div className={cn("text-xl flex items-center justify-center gap-x-2 font-black",
-            className
-        )}>
-            <GiWoodenSign size={35} className="text-red-700" />
-            <div className="flex items-center gap-x-0.5 text-neutral-900">
-                <span className="">100</span>
-                <span className="text-red-700">x</span>
-                <span className="">Menti</span>
+        <div 
+            className={cn(
+                "text-3xl flex items-center justify-center gap-x-2 font-medium",
+                className
+            )}
+            style={style}
+        >
+            <Image
+                src={"/app-logo.png"}
+                width={36}
+                height={36}
+                alt="logo"
+                unoptimized
+            />
+            <div className="flex items-center gap-x-0.5 tracking-wide mt-1">
+                <span>Mentimeter</span>
             </div>
         </div>
     )

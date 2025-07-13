@@ -33,7 +33,6 @@ export default function RightPanel() {
 
         try {
             setLoading(true);
-            await new Promise(t => setTimeout(t, 3000));
             const { data } = await axios.post(`${CREATE_QUIZ_URL}`, { ...quizData, newQuizId }, {
                 headers: {
                     Authorization: `Bearer ${session.user.token}`

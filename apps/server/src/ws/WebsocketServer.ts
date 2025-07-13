@@ -173,14 +173,14 @@ export default class WebSocketServer {
                 participantScreen: ParticipantScreen.MOTIVATION
             })
 
-            this.startMotivationPhase(ws, sessionId, question);
+            this.startMotivationPhase(ws, sessionId, question, questionIdx);
         } catch (err) {
             console.error('Error launching question:', err);
             this.sendError(ws, 'Failed to launch question');
         }
     }
 
-    private async startMotivationPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
+    private async startMotivationPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question, questionIdx: number) {
         this.broadcastToRoom(sessionId, {
             type: MESSAGE_TYPES.QUESTION_MOTIVATION,
             payload: {
@@ -202,29 +202,30 @@ export default class WebSocketServer {
         }
 
         setTimeout(() => {
-            this.startReadingPhase(hostSocket, sessionId, question);
+            this.startReadingPhase(hostSocket, sessionId, question, questionIdx);
         }, 5000)
     }
 
-    private async startReadingPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
+    private async startReadingPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question, questionIdx: number) {
         const readingEndTime = new Date(Date.now() + 5000);
 
         await this.redisService.updateSession(sessionId, {
             participantScreen: ParticipantScreen.COUNTDOWN,
-            readingPhaseEndTime: readingEndTime
+            readingPhaseEndTime: readingEndTime,
         })
 
         console.log("redis cache for live session is in reading phase : ", await this.redisService.getLiveSession(sessionId));
 
         DatabaseQueue.updateLiveSession(sessionId, {
-            participantScreen: ParticipantScreen.COUNTDOWN
+            participantScreen: ParticipantScreen.COUNTDOWN,
         })
 
         this.broadcastToRoom(sessionId, {
             type: MESSAGE_TYPES.QUESTION_READING,
             payload: {
-                phase: 'QUESTION_READING',
+                phase: 'READING',
                 questionId: question.id,
+                questionIdx: questionIdx,
                 title: question.title,
                 type: question.type,
                 points: question.points,
@@ -244,11 +245,12 @@ export default class WebSocketServer {
         }
 
         setTimeout(() => {
-            this.startAnsweringPhase(sessionId, question);
+            this.startAnsweringPhase(hostSocket, sessionId, question);
         }, 5000);
     }
 
-    private async startAnsweringPhase(sessionId: string, question: Question) {
+    private async startAnsweringPhase(hostSocket: CustomWebSocket, sessionId: string, question: Question) {
+
         const questionEndTime = new Date(Date.now() + (question.timing * 1000));
 
         await this.redisService.updateSession(sessionId, {
@@ -264,6 +266,7 @@ export default class WebSocketServer {
         this.broadcastToRoom(sessionId, {
             type: MESSAGE_TYPES.QUESTION_ANSWERING,
             payload: {
+                phase: 'ANSWERING',
                 questionId: question.id,
                 title: question.title,
                 type: question.type,
@@ -272,7 +275,7 @@ export default class WebSocketServer {
                 timeLimit: question.timing,
                 timeLeft: question.timing * 1000,
             }
-        });
+        }, hostSocket.id);
     }
 
     private async handleStartQuiz(ws: CustomWebSocket, payload: any) {

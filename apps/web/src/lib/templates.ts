@@ -42,7 +42,7 @@ const templates: Template[] = [
         design: 'donut',
         designColor: '#DC2525',
         accent: '#FFCC00',
-        bars: ['#06923E', '#DC2525', '#FFF2EB', '#030303'] as [string, string, string, string],
+        bars: ['#06923E', '#030303', '#FFF2EB', '#DC2525'] as [string, string, string, string],
     },
     {
         id: 'GREEN',
@@ -50,7 +50,7 @@ const templates: Template[] = [
         bg: '#00712D',
         textColor: '#EEEEEE',
         design: 'circle',
-        accent: '#B2CD9C',
+        accent: '#00712D',
         bars: ['#000000', '#CB0404', '#483AA0', '#FFC107'] as [string, string, string, string],
     },
 ];

@@ -10,7 +10,7 @@ import { useLiveQuestion } from "@/zustand/live-quiz-store/useLiveQuestion"
 export const useParticipantsEventSubscriptions = () => {
     const { subscribeToHandler, unSubscribeToHandler } = useWebSocket()
     const { updateSession } = useLiveSessionStore()
-    const { setQuestion } = useLiveQuestion();
+    const { setQuestion, updateQuestion } = useLiveQuestion();
 
     const { toast } = useToast();
 
@@ -32,11 +32,13 @@ export const useParticipantsEventSubscriptions = () => {
 
     function handleIncomingQuestionReadingHandler(newMessage: any) {
 
-        const { phase, questionId, title, type, points, readingTimeLeft } = newMessage;
+        const { phase, questionId, questionIdx, title, type, points, readingTimeLeft } = newMessage;
         updateSession({
-            ...(phase === 'QUESTION_READING' && {
-                participantScreen: ParticipantScreen.COUNTDOWN
-            })
+            ...(phase === 'READING' && {
+                participantScreen: ParticipantScreen.COUNTDOWN,
+            }),
+            currentQuestionIndex: questionIdx,
+            currentQuestionId: questionId
         })
         setQuestion({
             id: questionId,
@@ -47,14 +49,34 @@ export const useParticipantsEventSubscriptions = () => {
 
     }
 
+    function handleIncomingActiveQuestionWithOptionsHandler(newMessage: any) {
+        const { phase, questionId, questionIdx, title, type, points, options, timeLimit, timeLeft } = newMessage;
+        
+        updateSession({
+            ...(phase === 'ANSWERING' && {
+                participantScreen: ParticipantScreen.QUESTION_ACTIVE
+            }),
+            currentQuestionId: questionId,
+            currentQuestionIndex: questionIdx
+        })
+
+        updateQuestion({
+            title,
+            options,
+            timing: timeLimit
+        })
+    }
+
     useEffect(() => {
         subscribeToHandler(MESSAGE_TYPES.JOINED_QUIZ, handleIncomingJoinQuizHandler);
         subscribeToHandler(MESSAGE_TYPES.QUESTION_MOTIVATION, handleIncomingMotivationHandler);
         subscribeToHandler(MESSAGE_TYPES.QUESTION_READING, handleIncomingQuestionReadingHandler);
+        subscribeToHandler(MESSAGE_TYPES.QUESTION_ANSWERING, handleIncomingActiveQuestionWithOptionsHandler);
         return () => {
             unSubscribeToHandler(MESSAGE_TYPES.JOINED_QUIZ, handleIncomingJoinQuizHandler);
             unSubscribeToHandler(MESSAGE_TYPES.QUESTION_MOTIVATION, handleIncomingMotivationHandler);
             unSubscribeToHandler(MESSAGE_TYPES.QUESTION_READING, handleIncomingQuestionReadingHandler);
+            unSubscribeToHandler(MESSAGE_TYPES.QUESTION_ANSWERING, handleIncomingActiveQuestionWithOptionsHandler);
         }
     }, [])
 }

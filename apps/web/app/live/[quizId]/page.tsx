@@ -12,6 +12,7 @@ import axios from "axios";
 import { use, useEffect, useState } from "react"
 import AppLogo from "@/components/ui/AppLogo";
 import WaitingLobbyBottomTicker from "@/components/live-quiz/participant/waiting-lobby/WaitingLobbyBottomTicker";
+import templates from "@/lib/templates";
 
 interface PageProps {
     params: Promise<{
@@ -33,8 +34,11 @@ export default function Home({ params }: PageProps) {
     const { setLiveQuiz } = useLiveQuizDataStore();
     const { setLiveSession } = useLiveSessionStore();
     const { participants, setParticipants } = useLiveQuizParticipantsStore()
+    const { liveQuiz } = useLiveQuizDataStore()
+    const selectedTemplate = templates.find(t => t.id === liveQuiz?.template);
     useWebSocket();
     useSubscribeToHandlers();
+
     useEffect(() => {
         const participantToken = sessionStorage.getItem('quiz_token');
         const hostToken = sessionStorage.getItem('host_token');
@@ -78,6 +82,7 @@ export default function Home({ params }: PageProps) {
             {type === UserType.HOST && <HostPannelRenderer />}
             {type === UserType.USER && <ParticipantPannelRenderer />}
             <WaitingLobbyBottomTicker participants={participants} />
+            <AppLogo className="absolute top-8 left-8 font-normal text-2xl" style={{ color: selectedTemplate?.textColor }} />
         </div>
     )
 }

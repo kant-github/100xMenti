@@ -8,6 +8,7 @@ import QuestionReading from "../question/QuestionReading";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useEffect } from "react";
 import { useParticipantsEventSubscriptions } from "@/hooks/useParticipantsEventSubscriptions";
+import QuestionActive from "../question/QuestionActive";
 
 
 export default function ParticipantPannelRenderer() {
@@ -15,7 +16,7 @@ export default function ParticipantPannelRenderer() {
     const { liveQuiz } = useLiveQuizDataStore()
     const selectedTemplate = templates.find(t => t.id === liveQuiz.template);
     useParticipantsEventSubscriptions()
-    // liveSession.participantScreen = ParticipantScreen.COUNTDOWN;
+    // liveSession.participantScreen = ParticipantScreen.QUESTION_ACTIVE;
 
     const { sendJoinQuizMessage } = useWebSocket();
     useEffect(() => {
@@ -27,7 +28,7 @@ export default function ParticipantPannelRenderer() {
             sendJoinQuizMessage(data);
         }
     }, [liveSession.id, liveSession.quizId])
-
+    console.log("screen is : ", liveSession.participantScreen);
     function renderComponent() {
         switch (liveSession.participantScreen) {
             case ParticipantScreen.LOBBY:
@@ -35,8 +36,12 @@ export default function ParticipantPannelRenderer() {
             case ParticipantScreen.MOTIVATION:
                 return <QuestionMotivation template={selectedTemplate} />;
             case ParticipantScreen.COUNTDOWN:
-                return <QuestionReading template={selectedTemplate} />
-            
+                return <QuestionReading template={selectedTemplate} />;
+            case ParticipantScreen.QUESTION_ACTIVE:
+                return <QuestionActive template={selectedTemplate} />;
+            default:
+                return null;
+
         }
     }
 

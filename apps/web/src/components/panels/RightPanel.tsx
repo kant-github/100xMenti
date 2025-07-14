@@ -1,30 +1,32 @@
-import { ChevronLeft, ChevronRight, Edit3, Loader2, Play, Plus } from "lucide-react";
 import { useQuizCreationStepsStore } from "@/zustand/quizCreationStep";
 import { useCurrentQuestionStore, useQuizDataStore } from "@/zustand/quizStore";
-import { Button } from "../ui/button";
-import UtilityCard from "../ui/UtilityCard";
-import { RxCross2 } from "react-icons/rx";
-import templates from "@/lib/templates";
 import { useSessionStore } from "@/zustand/sessionZustand";
 import axios from "axios";
 import { CREATE_QUIZ_URL } from "@/lib/api_routes";
 import { useNewQuizIdStore } from "@/zustand/newQuizIdStore";
 import { useState } from "react";
+import { HiCollection } from "react-icons/hi";
+import { IoCloseOutline } from "react-icons/io5";
+import { BiSolidMessageEdit } from "react-icons/bi";
+import UtilityCard from "../ui/UtilityCard";
+import { GoChevronLeft } from "react-icons/go";
+import { GoChevronRight } from "react-icons/go";
+import { Button } from "../ui/button";
+import { Template } from "@/lib/templates";
+import { IoIosCheckmark } from "react-icons/io";
 
+enum Renderer {
+    THEME = 'THEME',
+    QUESTION = 'QUESTION'
+}
 
-export default function RightPanel() {
+export default function RightPanel({ template }: { template: Template }) {
+    const [showPanel, setShowPanel] = useState<Renderer | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const { currentStep, setCurrentStep } = useQuizCreationStepsStore();
     const { session } = useSessionStore();
     const { newQuizId } = useNewQuizIdStore()
-    const {
-        quizData,
-        setQuizData,
-        updateQuizField,
-        updateQuestionField,
-        updateOption,
-        addQuestion
-    } = useQuizDataStore();
+    const { quizData, setQuizData, updateQuizField, updateQuestionField, updateOption, addQuestion } = useQuizDataStore();
 
     async function createQuizHandler() {
         if (!session) {
@@ -74,238 +76,128 @@ export default function RightPanel() {
     const { currentQuestion, setCurrentQuestion } = useCurrentQuestionStore();
     const currentQ = quizData.questions[currentQuestion];
 
+    console.log("show panel is : ", showPanel);
+
     return (
-        <div className="min-h-screen flex flex-col bg-neutral-100 flex-1 rounded-l-xl overflow-hidden py-4 border-l-[1px] border-neutral-300">
-            {/* Form Header */}
-            <div className="border-b-[1px] border-neutral-300 px-4 py-2">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Edit3 className="w-5 h-5 text-neutral-900" />
-                        <span className="font-medium">Quiz Editor</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            onClick={createQuizHandler}
-                            className="min-w-[120px] px-6 py-5 bg-neutral-900 text-white hover:bg-neutral-800 transition rounded-xl  disabled:bg-neutral-900 disabled:text-white disabled:opacity-100 disabled:cursor-default"
-                            disabled={loading}
+        <div className="min-h-full flex justify-end p-4 ">
+            <div className="flex gap-x-3 w-full max-w-4xl flex-row-reverse rounded-l-xl">
+                <div className="w-[6rem] flex-shrink-0">
+                    <div className="bg-neutral-100 rounded-xl overflow-hidden p-1 h-full">
+                        <button
+                            type="button"
+                            onClick={() => setShowPanel(Renderer.QUESTION)}
+                            className={`w-full h-20 flex items-center justify-center rounded-xl ${showPanel === Renderer.QUESTION ? "hover:bg-purple-700/10 bg-purple-400/10 border border-purple-800" : "hover:bg-neutral-200"}`}
                         >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Drafting...
-                                </>
-                            ) : quizData.isUpdated ? (
-                                'Update Draft'
-                            ) : (
-                                'Save Draft'
-                            )}
-                        </Button>
-
-                    </div>
-                </div>
-            </div>
-
-            {/* Step Navigation */}
-            <div className="bg-neutral-100 p-4">
-                <div className="flex items-center gap-4">
-                    <Button
-                        type='button'
-                        onClick={() => setCurrentStep(1)}
-                        variant="outline" className={`min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs ${currentStep === 1 && 'border border-blue-400'} `}
-                    >
-                        Setup
-                    </Button>
-                    <Button
-                        type='button'
-                        onClick={() => setCurrentStep(2)}
-                        variant="outline" className={`min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-200  transition rounded-xl flex items-center justify-center gap-x-2 text-xs ${currentStep === 2 && 'border border-blue-400'} `}
-                    >
-                        Questions
-                    </Button>
-                </div>
-            </div>
-
-            {/* Form Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                {currentStep === 1 ? (
-                    // Setup Form
-                    <UtilityCard className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Quiz Title
-                            </label>
-                            <input
-                                type="text"
-                                value={quizData.title}
-                                onChange={(e) => updateQuizField('title', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none bg-neutral-200 text-sm font-light"
-                                placeholder="Enter quiz title..."
-                                key="quiz-title"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Choose Template
-                            </label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {templates.map((template) => (
-                                    <div
-                                        key={template.id}
-                                        onClick={() => updateQuizField('template', template.id)}
-                                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${quizData.template === template.id
-                                            ? 'border-blue-500 ring-2 ring-blue-200'
-                                            : 'border-gray-200 hover:border-gray-300'
-                                            }`}
-                                    >
-                                        <div className={`w-full h-12 rounded mb-2`}
-                                            style={{
-                                                backgroundColor: template.bg
-                                            }}
-                                        />
-                                        <div className="text-xs font-medium text-neutral-950">
-                                            {template.name}
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="flex flex-col items-center justify-center gap-y-1">
+                                <BiSolidMessageEdit className="w-6 h-6" />
+                                <span className="text-neutral-900 text-xs">Question</span>
                             </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Default Time per Question (seconds)
-                            </label>
-                            <input
-                                aria-label='s'
-                                type="number"
-                                min="10"
-                                max="300"
-                                value={quizData.timing}
-                                onChange={(e) => updateQuizField('timing', parseInt(e.target.value) || 30)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                key="quiz-timing"
-                            />
-                        </div>
+                        </button>
 
                         <button
-                            type='button'
-                            onClick={() => setCurrentStep(2)}
-                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                            type="button"
+                            onClick={() => setShowPanel(Renderer.THEME)}
+                            className={`w-full h-20 flex items-center justify-center rounded-xl ${showPanel === Renderer.THEME ? "hover:bg-purple-700/10 bg-purple-400/10 border border-purple-800" : "hover:bg-neutral-200"}`}
                         >
-                            Continue to Questions
-                            <ChevronRight className="w-4 h-4" />
+                            <div className="flex flex-col items-center justify-center gap-y-1">
+                                <HiCollection className="w-6 h-6" />
+                                <span className="text-neutral-900 text-xs">Theme</span>
+                            </div>
                         </button>
-                    </UtilityCard>
-                ) : (
-                    // Questions Form
-                    <div className="space-y-6 bg-neutral-100 p-4 rounded-xl">
-                        {/* Question Navigation */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <button
-                                    aria-label='left'
-                                    type='button'
-                                    onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-                                    disabled={currentQuestion === 0}
-                                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </button>
-                                <span className="text-sm font-medium">
-                                    Question {currentQuestion + 1} of {quizData.totalQuestions}
-                                </span>
-                                <button
-                                    type='button'
-                                    aria-label='left'
-                                    onClick={() => setCurrentQuestion(Math.min(quizData.questions.length - 1, currentQuestion + 1))}
-                                    disabled={currentQuestion === quizData.questions.length - 1}
-                                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <Button onClick={addQuestion} variant="outline" className="min-w-[120px] px-6 py-5 text-neutral-900 border border-neutral-300 bg-neutral-300  transition rounded-xl flex items-center justify-center gap-x-2 text-xs">
-                                <Plus />
-                                Add Question
-                            </Button>
-                        </div>
-
-                        {/* Question Form */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Question
-                            </label>
-                            <textarea
-                                value={currentQ?.question || ''}
-                                onChange={(e) => updateQuestionField(currentQuestion, 'question', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none bg-neutral-200 text-sm font-light"
-                                rows={3}
-                                placeholder="Type your question here..."
-                                key={`question-${currentQuestion}`}
-                            />
-                        </div>
-
-                        {/* Options */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                Answer Options
-                            </label>
-                            <div className="space-y-2">
-                                {currentQ?.options.map((option, idx) => (
-                                    <div key={idx} className="flex items-center gap-3 w-[80%]">
-                                        <input
-                                            aria-label='s'
-                                            type="radio"
-                                            name={`correctAnswer-${currentQuestion}`}
-                                            checked={currentQ.correctAnswer === idx}
-                                            onChange={() => updateQuestionField(currentQuestion, 'correctAnswer', idx)}
-                                            className="appearance-none w-[22px] h-[22px] border border-neutral-300 rounded-sm bg-white checked:bg-violet-500 checked:border-violet-600 outline-none focus:outline-none ring-0 focus:ring-0 focus:ring-offset-2 relative checked:after:content-['✓'] checked:after:text-white checked:after:text-xs checked:after:absolute checked:after:top-0 checked:after:left-0 checked:after:w-full checked:after:h-full checked:after:flex checked:after:items-center checked:after:justify-center"
-                                        />
-                                        <div className="flex-1">
-                                            <input
-                                                type="text"
-                                                value={option}
-                                                onChange={(e) => updateOption(currentQuestion, idx, e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg focus:ring-0 focus:border-transparent bg-neutral-200 text-sm font-light outline-none"
-                                                placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                                                key={`option-${currentQuestion}-${idx}`}
-                                            />
-                                        </div>
-                                        <RxCross2 size={14} />
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-2">
-                                Select the checkbox next to the correct answer
-                            </div>
-                        </div>
-
-                        {/* Question Timing */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Time Limit (seconds)
-                            </label>
-                            <input
-                                aria-label='s'
-                                type="number"
-                                min="10"
-                                max="300"
-                                value={currentQ?.timing || quizData.timing}
-                                onChange={(e) => updateQuestionField(currentQuestion, 'timing', parseInt(e.target.value))}
-                                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-neutral-200 text-sm font-light"
-                            />
-                        </div>
-
-                        {/* Launch Quiz Button */}
-                        <div className="pt-4 border-t">
-                            <button type='button' className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
-                                <Play className="w-4 h-4" />
-                                Launch Quiz
-                            </button>
-                        </div>
                     </div>
-                )}
+                </div>
+
+
+                {
+                    showPanel && (
+                        <UtilityCard className=" bg-neutral-100 rounded-xl overflow-hidden h-full min-w-[25rem] p-4">
+                            {(showPanel === Renderer.QUESTION) && (
+                                <div className="h-full flex flex-col gap-y-2">
+
+                                    <div className="flex items-center justify-between w-full flex-row p-2">
+                                        <span>Question</span>
+                                        <IoCloseOutline size={22} onClick={() => setShowPanel(null)} />
+                                    </div>
+                                    <hr className="border-[0.5px] border-neutral-300" />
+                                    <div className="w-full flex items-center justify-evenly mt-4 text-neutral-900 text-sm">
+                                        <Button className="bg-neutral-200 p-1 rounded-lg border border-neutral-300">
+                                            <GoChevronLeft size={20} />
+                                        </Button>
+                                        <span> Question {currentQuestion + 1} of {quizData.totalQuestions}</span>
+                                        <Button className="bg-neutral-200 p-1 rounded-lg border border-neutral-300">
+                                            <GoChevronRight size={20} />
+                                        </Button>
+                                        <Button onClick={addQuestion} className="bg-neutral-200 border border-neutral-300 rounded-lg">Add Question</Button>
+                                    </div>
+
+                                    <textarea
+                                        value={currentQ?.question || ''}
+                                        onChange={(e) => updateQuestionField(currentQuestion, 'question', e.target.value)}
+                                        className="w-full mt-4 px-4 py-3 border border-gray-300 rounded-xl outline-none bg-gray-50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        rows={3}
+                                        placeholder="Type your question here..."
+                                        key={`question-${currentQuestion}`}
+                                    />
+                                    <div className="w-full flex items-center justify-end">
+                                        <div className="flex items-center gap-x-1 flex-shrink-0 px-2 py-1 border border-purple-800 bg-purple-800/10 rounded-lg mr-1">
+                                            <IoIosCheckmark size={16} />
+                                            <span className="text-xs text-purple-900">select the correct answer</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {currentQ?.options.map((option, idx) => (
+                                            <div key={idx} className="flex items-center gap-4 p-3 border border-neutral-300 rounded-xl hover:bg-gray-50 transition">
+                                                <input
+                                                    style={{ backgroundColor: `${template.bars[idx]}` }}
+                                                    aria-label={`Select option ${String.fromCharCode(65 + idx)} as correct answer`}
+                                                    type="radio"
+                                                    name={`correctAnswer-${currentQuestion}`}
+                                                    checked={currentQ.correctAnswer === idx}
+                                                    onChange={() => updateQuestionField(currentQuestion, 'correctAnswer', idx)}
+                                                    className="appearance-none w-5 h-5 rounded-full checked:border-2 checked:border-violet-600 outline-none focus:outline-none ring-0 cursor-pointer"
+                                                />
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="text"
+                                                        value={option}
+                                                        onChange={(e) => updateOption(currentQuestion, idx, e.target.value)}
+                                                        className="w-full px-3 py-2 rounded-lg focus:border-transparent text-sm outline-none transition"
+                                                        placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                                                        key={`option-${currentQuestion}-${idx}`}
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="p-1 text-gray-400 hover:text-red-500 transition"
+                                                    aria-label={`Remove option ${String.fromCharCode(65 + idx)}`}
+                                                >
+                                                    <IoCloseOutline size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="bg-neutral-800 flex-1 rounded-xl flex items-center justify-center">
+                                        <span className="text-xs text-wrap text-neutral-300">choose a display image for this question</span>
+                                    </div>
+                                </div>
+                            )}
+                            {(showPanel === Renderer.THEME) && (
+                                <div className="h-full">
+
+                                    <div className="flex items-center justify-between w-full flex-row p-2">
+                                        <span>Themes</span>
+                                        <IoCloseOutline size={22} onClick={() => setShowPanel(null)} />
+                                    </div>
+
+                                </div>
+                            )}
+                        </UtilityCard>
+                    )
+                }
+
             </div>
         </div>
-    )
+    );
+
 }

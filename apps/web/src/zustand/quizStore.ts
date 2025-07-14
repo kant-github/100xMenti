@@ -43,7 +43,7 @@ export const useQuizDataStore = create<QuizDataStore>((set) => ({
                 question: 'What will be the output of this JavaScript code?\n\nconsole.log(typeof typeof 1);',
                 options: ['number', 'string', 'undefined', 'object'],
                 correctAnswer: 1,
-                timing: 45
+                timing: 30
             },
         ]
     },

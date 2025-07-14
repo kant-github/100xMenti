@@ -13,9 +13,9 @@ export default function QuestionPreviewRight({ selectedTemplate }: QuestionPrevi
     const currentQ = liveQuiz.questions[currentQuestionIx];
 
     return (
-        <div className='h-screen border-l-[1px] border-neutral-300 shadow-xl z-[60] rounded-l-xl transform transition-transform ease-in-out duration-300 overflow-hidden flex flex-col bg-neutral-200'>
+        <div className='h-screen border-l-[1px] border-neutral-300 shadow-xl z-[60] rounded-l-xl transform transition-transform ease-in-out duration-300 overflow-hidden flex flex-col justify-evenly bg-neutral-200'>
             {/* Header Section */}
-            <div className="flex flex-col gap-y-4 flex-shrink-0 p-6 pb-4">
+            <div className="flex flex-col gap-y-4 flex-shrink-0 p-6 pb-2">
                 <div className="flex items-center justify-start gap-x-3">
                     <div className={`cursor-pointer text-md text-neutral-700 font-light py-1 px-2 rounded-xs`}>
                         {liveQuiz.title}
@@ -26,7 +26,7 @@ export default function QuestionPreviewRight({ selectedTemplate }: QuestionPrevi
             </div>
 
             {/* Main Content Section */}
-            <div className="flex-1 flex flex-col justify-center px-6 py-8">
+            <div className="flex-shrink-0flex flex-col justify-center px-6">
                 {/* Question Header */}
                 <div className="bg-neutral-100 px-5 py-4 rounded-xl">
                     <div className="flex items-start gap-x-3 mb-4">
@@ -57,8 +57,8 @@ export default function QuestionPreviewRight({ selectedTemplate }: QuestionPrevi
             </div>
 
             {/* Footer Section */}
-            <div className="flex-shrink-0 p-6 pt-4 flex justify-center">
-                <div className="flex items-center gap-x-1.5 bg-neutral-300 w-fit px-4 py-2 rounded-full shadow-md">
+            <div className="p-2 flex justify-center">
+                <div className="flex items-center gap-x-1.5 bg-neutral-100 w-fit px-4 py-3 rounded-full shadow-md">
                     <div className="text-xs text-neutral-700 font-light tracking-wide">Press</div>
                     <span className="bg-neutral-900 text-neutral-100 text-xs font-light tracking-wider px-3 py-1 rounded-lg">ENTER</span>
                     <div className="text-xs text-neutral-700 font-light tracking-wide">to launch this question</div>

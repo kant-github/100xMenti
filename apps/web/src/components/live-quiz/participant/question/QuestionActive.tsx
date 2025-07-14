@@ -18,13 +18,13 @@ export default function QuestionActive({ template }: QuestionActiveProps) {
             <div className='grid grid-cols-[70%_30%]'>
                 {/* left */}
                 <div className="h-screen overflow-hidden w-full flex items-center justify-center">
-                    <QuestionCanvas className="flex flex-col justify-evenly select-none" template={template}>
+                    <QuestionCanvas className="flex flex-col justify-evenly select-none lg:px-16" template={template}>
                         <DesignElementsBackground
                             design={template.design}
                             accentColor={template.designColor}
                         />
 
-                        <section>
+                        <section className="">
                             <div className="mb-3 text-md tracking-wider font-semibold leading-relaxed text-wrap">Question 1</div>
                             <div className="text-2xl tracking-wider font-light leading-relaxed text-wrap">{question?.title}</div>
                         </section>
@@ -36,21 +36,15 @@ export default function QuestionActive({ template }: QuestionActiveProps) {
 
                 {/* Right */}
                 <UtilitySideBarTwo>
-                    <div className="flex-1 flex flex-col justify-between px-6 py-4">
-                        <div className="flex flex-col gap-y-4 flex-shrink-0">
+                    <div className="flex-1 flex flex-col justify-start gap-y-5 px-6 py-4">
+                        <section className="flex flex-col gap-y-4 flex-shrink-0">
                             <div className="flex items-center justify-start gap-x-3">
                                 <div className={`cursor-pointer text-md text-neutral-700 font-light py-1 px-2 rounded-xs`}>
                                     {liveQuiz.title}
                                 </div>
                             </div>
                             <hr className="border-neutral-500/50" />
-
-
-                            <div style={{ border: `1px solid ${template.textColor}` }} className="space-y-4 p-4 bg-neutral-800 rounded-xl border border-neutral-800 min-h-[10rem] flex items-center justify-center">
-                                <span className="text-xs tracking-wide font-light cursor-pointer text-neutral-400">photo preview here</span>
-                            </div>
-
-                        </div>
+                        </section>
 
                         {/* Question Header */}
                         <section>
@@ -79,6 +73,11 @@ export default function QuestionActive({ template }: QuestionActiveProps) {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        </section>
+                        <section className="flex-1 ">
+                            <div className="bg-neutral-800 h-full rounded-xl flex items-center justify-center">
+                                <span className="text-xs text-neutral-500">currently no image</span>
                             </div>
                         </section>
                     </div>

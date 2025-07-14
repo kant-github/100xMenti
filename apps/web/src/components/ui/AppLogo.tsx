@@ -24,7 +24,7 @@ export default function AppLogo({ className, style }: AppLogoProps) {
                 unoptimized
             />
             <div className="flex items-center gap-x-0.5 tracking-wide mt-1">
-                <span>Mentimeter</span>
+                <span>Pinnaclex</span>
             </div>
         </div>
     )

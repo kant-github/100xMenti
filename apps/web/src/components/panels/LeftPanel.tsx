@@ -5,6 +5,9 @@ import { BookOpen, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import templates from "@/lib/templates";
 import { useSessionStore } from "@/zustand/sessionZustand";
+import QuestionCanvas from "../ui/QuestionCanvas";
+import DesignElementsBackground from "../ui/DesignElementsBackground";
+
 
 export default function LeftPanel() {
     const { quizData } = useQuizDataStore();
@@ -27,7 +30,7 @@ export default function LeftPanel() {
     }, [currentQuestion]);
 
     return (
-        <div className={`w-[70%] h-full overflow-hidden`}>
+        <div className={`h-full overflow-hidden w-full`}>
             <div className="h-full shadow-lg flex flex-col items-center justify-center px-4">
 
                 <div className="text-center mb-8 lg:my-12 relative z-10">
@@ -45,11 +48,13 @@ export default function LeftPanel() {
                 </div>
 
                 {/* FIXED CONTAINER - Now has consistent dimensions */}
-                <div className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-lg flex flex-col"
-                    style={{
-                        backgroundColor: selectedTemplate.bg
-                    }}
+                <QuestionCanvas template={selectedTemplate} className="w-full max-w-4xl h-[500px] sm:h-[550px] lg:h-[600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 rounded-lg flex flex-col"
+
                 >
+                    <DesignElementsBackground
+                        design={selectedTemplate.design}
+                        accentColor={selectedTemplate.designColor}
+                    />
                     {/* Question header - Fixed height */}
                     <div className="text-center mb-6 lg:mb-8 flex-shrink-0">
                         <div className="text-sm lg:text-base font-medium text-neutral-950 mb-2">
@@ -64,7 +69,7 @@ export default function LeftPanel() {
 
                     {/* Chart container - Takes remaining space */}
                     <div className="flex-1 relative">
-                        <div className="absolute inset-0 flex items-end justify-center pb-8">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <div className="w-full max-w-3xl h-full flex items-end justify-center gap-4">
                                 {
                                     currentQ?.options?.map((option, idx) => (
@@ -85,7 +90,7 @@ export default function LeftPanel() {
                                                     height: `${Math.max(votes[idx] * 2.5, 12)}px`,
                                                     minWidth: '60px',
                                                     maxWidth: '180px',
-                                                    backgroundColor: selectedTemplate.bars[idx]
+                                                    backgroundColor: `${selectedTemplate.bars[idx]}FF`
                                                 }}
                                             />
 
@@ -101,7 +106,7 @@ export default function LeftPanel() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </QuestionCanvas>
 
                 <div className="my-6 lg:mt-8 flex justify-center">
                     <div className="flex items-center gap-2 text-neutral-950">

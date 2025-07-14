@@ -1,4 +1,5 @@
 'use client'
+import DashNav from "@/components/navbar/DashNav";
 import Panels from "@/components/panels/Panels";
 import UtilityCard from "@/components/ui/UtilityCard";
 import { GET_QUIZ_URL } from "@/lib/api_routes";
@@ -19,20 +20,19 @@ export default function Home({ params }: PageProps) {
     const { setNewQuizId } = useNewQuizIdStore();
     const { session } = useSessionStore();
     const { setQuizData } = useQuizDataStore()
-
+    
     useEffect(() => {
         if (quizId) {
             setNewQuizId(quizId);
         }
     }, [setNewQuizId, quizId]);
-
+    
     useEffect(() => {
         if (quizId && session?.user?.token) {
             getQuiz();
         }
     }, [session, quizId]);
-
-
+    
     async function getQuiz() {
         try {
             console.log(`${GET_QUIZ_URL}`);
@@ -50,7 +50,6 @@ export default function Home({ params }: PageProps) {
                 isUpdated,
                 questions
             } = data.data;
-
             setQuizData({
                 title: title,
                 template: template,
@@ -72,10 +71,13 @@ export default function Home({ params }: PageProps) {
             console.error("Error response:", error.response?.data);
         }
     }
-
+    
     return (
-        <UtilityCard>
-            <Panels />
-        </UtilityCard>
+        <div className="w-full h-screen flex flex-col">
+            <DashNav />
+            <UtilityCard className="bg-neutral-200 w-full flex-1 overflow-hidden">
+                <Panels />
+            </UtilityCard>
+        </div>
     );
 }

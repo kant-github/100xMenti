@@ -1,6 +1,6 @@
 import RightPanel from "./RightPanel";
 import LeftPanel from "./LeftPanel";
-import { useQuizDataStore } from "@/zustand/quizStore";
+import { useQuizDataStore } from "@/zustand/useQuizDataStore";
 import templates from "@/lib/templates";
 
 export default function Panels() {

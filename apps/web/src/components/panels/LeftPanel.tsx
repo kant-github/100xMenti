@@ -1,5 +1,5 @@
 import { RxCross2 } from "react-icons/rx";
-import { useCurrentQuestionStore, useQuizDataStore } from '@/zustand/quizStore';
+import { useCurrentQuestionStore, useQuizDataStore } from '@/zustand/useQuizDataStore';
 import { IoIosCheckmark } from "react-icons/io";
 import { BookOpen, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -31,10 +31,10 @@ export default function LeftPanel() {
 
     return (
         <div className={`h-full overflow-hidden w-full`}>
-            <div className="h-full shadow-lg flex flex-col items-center justify-center px-4">
+            <div className="h-full shadow-lg flex flex-col items-center justify-center px-4 w-full">
 
-                <div className="text-center mb-8 lg:my-12 relative z-10">
-                    <h1 className="text-center text-2xl lg:text-3xl font-mono font-normal mb-2">{quizData.title}</h1>
+                <div className="text-center mb-8 lg:my-5 relative z-10 rounded-xl bg-neutral-100 w-full max-w-4xl py-4 border-[1px] border-neutral-300">
+                    <h1 className="text-center text-2xl lg:text-3xl font-normal mb-2">{quizData.title}</h1>
                     <div className="flex items-center justify-center gap-4 lg:gap-6 text-sm lg:text-base font-light">
                         <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
@@ -55,19 +55,18 @@ export default function LeftPanel() {
                         design={selectedTemplate.design}
                         accentColor={selectedTemplate.designColor}
                     />
-                    {/* Question header - Fixed height */}
+
                     <div className="text-center mb-6 lg:mb-8 flex-shrink-0">
-                        <div className="text-sm lg:text-base font-medium text-neutral-950 mb-2">
+                        <div className="text-sm lg:text-base font-medium mb-2">
                             Question {currentQuestion + 1}
                         </div>
                         <div className="h-20 sm:h-24 lg:h-28 flex items-center justify-center">
-                            <h2 className="text-xl sm:text-2xl lg:text-3xl text-neutral-950 leading-relaxed text-center px-2 max-w-[40rem] overflow-hidden font-light tracking-wide">
+                            <h2 className="text-xl sm:text-2xl lg:text-[1.75rem] leading-relaxed text-center px-2 w-[99%] overflow-hidden font-light tracking-wide">
                                 {currentQ?.question}
                             </h2>
                         </div>
                     </div>
 
-                    {/* Chart container - Takes remaining space */}
                     <div className="flex-1 relative">
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <div className="w-full max-w-3xl h-full flex items-end justify-center gap-4">
@@ -96,7 +95,7 @@ export default function LeftPanel() {
 
                                             {/* Option label at the bottom - Fixed height */}
                                             <div className="mt-2 h-8 flex items-center justify-center">
-                                                <div className="text-xs sm:text-sm text-neutral-950 text-center px-1 leading-tight font-light">
+                                                <div className="text-xs sm:text-sm text-center px-1 leading-tight font-light">
                                                     {option.length > 12 ? `${option.substring(0, 12)}...` : option}
                                                 </div>
                                             </div>

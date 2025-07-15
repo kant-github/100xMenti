@@ -1,13 +1,14 @@
 const templates: Template[] = [
-    {
-        id: 'CLASSIC',
-        name: 'Classic White',
-        bg: '#FDFAF6',
-        bars: ['#2A1458', '#FFC107', '#B22222', '#06D001'] as [string, string, string, string],
-    },
+    // {
+    //     id: 'CLASSIC',
+    //     name: 'Classic White',
+    //     bg: '#FDFAF6',
+    //     bars: ['#2A1458', '#FFC107', '#B22222', '#06D001'] as [string, string, string, string],
+    // },
     {
         id: 'MODERN',
         name: 'Electric Modern',
+        src: "pink-template",
         bg: '#ff80ab',
         textColor: '#000000',
         design: 'wave',
@@ -17,7 +18,8 @@ const templates: Template[] = [
     },
     {
         id: 'PASTEL',
-        name: 'Pastel Dream',
+        name: 'Blue Glue',
+        src: "blue-template",
         bg: '#0065F8',
         textColor: '#EEEEEE',
         design: 'slash',
@@ -27,6 +29,7 @@ const templates: Template[] = [
     {
         id: 'NEON',
         name: 'Neon Night',
+        src: "black-template",
         bg: '#0d0d0d',
         textColor: '#EEEEEE',
         design: 'staircase',
@@ -37,6 +40,7 @@ const templates: Template[] = [
     {
         id: 'YELLOW',
         name: 'Yellow Mellow',
+        src: "yellow-template",
         bg: '#FFC107',
         textColor: '#000000',
         design: 'donut',
@@ -47,6 +51,7 @@ const templates: Template[] = [
     {
         id: 'GREEN',
         name: 'Jungle Green',
+        src: "green-template",
         bg: '#00712D',
         textColor: '#EEEEEE',
         design: 'circle',
@@ -60,6 +65,7 @@ export default templates;
 export interface Template {
     id: string;
     name: string;
+    src?: string;
     bg: string;
     textColor?: string;
     design?: 'circle' | 'staircase' | 'wave' | 'hexagon' | 'diamond' | 'triangle' | 'spiral' | 'gradient' | 'dots' | 'donut' | 'slash';

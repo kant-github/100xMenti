@@ -31,8 +31,8 @@ interface QuizDataStore {
 export const useQuizDataStore = create<QuizDataStore>((set) => ({
     quizData: {
         title: 'Advanced JavaScript & React Challenge',
-        template: 'MODERN',
-        timing: 45,
+        template: 'GREEN',
+        timing: 30,
         totalQuestions: 1,
         createdAt: null,
         updatedAt: null,

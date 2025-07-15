@@ -1,10 +1,9 @@
 'use client'
-import DashNav from "@/components/navbar/DashNav";
+import CreateQuizNavBar from "@/components/navbar/CreateQuizNavBar";
 import Panels from "@/components/panels/Panels";
-import UtilityCard from "@/components/ui/UtilityCard";
 import { GET_QUIZ_URL } from "@/lib/api_routes";
 import { useNewQuizIdStore } from "@/zustand/newQuizIdStore";
-import { useQuizDataStore } from "@/zustand/quizStore";
+import { useQuizDataStore } from "@/zustand/useQuizDataStore";
 import { useSessionStore } from "@/zustand/sessionZustand";
 import axios from "axios";
 import { use, useEffect } from "react";
@@ -20,19 +19,19 @@ export default function Home({ params }: PageProps) {
     const { setNewQuizId } = useNewQuizIdStore();
     const { session } = useSessionStore();
     const { setQuizData } = useQuizDataStore()
-    
+
     useEffect(() => {
         if (quizId) {
             setNewQuizId(quizId);
         }
     }, [setNewQuizId, quizId]);
-    
+
     useEffect(() => {
         if (quizId && session?.user?.token) {
             getQuiz();
         }
     }, [session, quizId]);
-    
+
     async function getQuiz() {
         try {
             console.log(`${GET_QUIZ_URL}`);
@@ -71,13 +70,13 @@ export default function Home({ params }: PageProps) {
             console.error("Error response:", error.response?.data);
         }
     }
-    
+
     return (
         <div className="w-full h-screen flex flex-col">
-            <DashNav />
-            <UtilityCard className="bg-neutral-200 w-full flex-1 overflow-hidden">
+            <CreateQuizNavBar />
+            <div className="bg-neutral-200 w-full flex-1 overflow-hidden">
                 <Panels />
-            </UtilityCard>
+            </div>
         </div>
     );
 }

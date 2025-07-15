@@ -11,7 +11,7 @@ export default function AppLogo({ className, style }: AppLogoProps) {
     return (
         <div 
             className={cn(
-                "text-3xl flex items-center justify-center gap-x-2 font-medium",
+                "text-2xl flex items-center justify-center gap-x-2 font-medium",
                 className
             )}
             style={style}

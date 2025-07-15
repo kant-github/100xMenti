@@ -18,6 +18,17 @@ import { MdAddReaction } from "react-icons/md";
 import { MdDragIndicator } from "react-icons/md";
 import { Input } from "../ui/input";
 import ThemesPanel from "../ui/ThemesPanel";
+import { FaHeart } from "react-icons/fa6";
+import { BsFillHandThumbsUpFill } from "react-icons/bs";
+import { MdEmojiEmotions } from "react-icons/md";
+import { FaLightbulb } from "react-icons/fa6";
+import { Switch } from "../ui/switch";
+import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { PiCurrencyCircleDollarFill } from "react-icons/pi";
+
+
+
+
 
 
 export enum Renderer {
@@ -29,6 +40,7 @@ export enum Renderer {
 export default function RightPanel({ template }: { template: Template }) {
     const [showPanel, setShowPanel] = useState<Renderer | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [enabled, setEnabled] = useState(false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const { currentStep, setCurrentStep } = useQuizCreationStepsStore();
     const { session } = useSessionStore();
@@ -161,7 +173,6 @@ export default function RightPanel({ template }: { template: Template }) {
                         <UtilityCard className=" bg-neutral-100 rounded-xl overflow-hidden h-full min-w-[25rem] py-4 px-6 border-[1px] border-neutral-300">
                             {(showPanel === Renderer.QUESTION) && (
                                 <div className="h-full flex flex-col">
-
                                     <div className="flex items-center justify-between w-full flex-row p-2">
                                         <span className="text-sm font-medium">Questions</span>
                                         <IoCloseOutline size={22} onClick={() => setShowPanel(null)} />
@@ -268,7 +279,28 @@ export default function RightPanel({ template }: { template: Template }) {
                                         <span>Interactivity</span>
                                         <IoCloseOutline size={22} onClick={() => setShowPanel(null)} />
                                     </div>
+                                    <hr className="border-[0.5px] border-neutral-300" />
 
+                                    <div className="w-full px-2 mt-6">
+                                        <div className="flex items-center justify-start gap-x-4">
+                                            <FaHeart size={40} className="border-[1px] border-neutral-300 p-2 rounded-md" />
+                                            <PiCurrencyCircleDollarFill size={40} className="border-[1px] border-neutral-300 p-2 rounded-md" />
+                                            <FaLightbulb size={40} className="border-[1px] border-neutral-300 p-2 rounded-md" />
+                                            <BsFillHandThumbsUpFill size={40} className="border-[1px] border-neutral-300 p-2 rounded-md" />
+                                            <MdEmojiEmotions size={40} className="border-[1px] border-neutral-300 p-2 rounded-md" />
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full px-2 mt-6">
+                                        <div className="flex items-center justify-start gap-x-1">
+                                            <span className="text-sm text-neutral-900 font-medium">Live chat</span>
+                                            <AiOutlineQuestionCircle size={15} />
+                                        </div>
+                                        <div className="flex w-full items-center justify-between mt-2">
+                                            <span className="text-xs text-neutral-600">Enable live chat</span>
+                                            <Switch checked={enabled} onCheckedChange={setEnabled} />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </UtilityCard>

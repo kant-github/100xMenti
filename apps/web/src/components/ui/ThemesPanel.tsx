@@ -24,12 +24,12 @@ export default function ThemesPanel({ setShowPanel }: ThemesPanelProps) {
             <div className="mt-4 px-2 pb-4 overflow-y-auto flex-1">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                     {templates.map((template, idx) => (
-                        <Button
+                        <div
                             onClick={() => updateQuizField('template', template.id)}
                             key={idx}
-                            className="p-0 w-full h-auto"
+                            className={`flex flex-col items-center gap-y-1 p-0 w-full h-auto rounded-[9px`}
                         >
-                            <div className={`w-full relative overflow-hidden rounded-[8px] flex items-center justify-center ${quizData.template === template.id && "border border-purple-800"}`}>
+                            <div className={`w-full relative overflow-hidden rounded-[8px] flex items-center justify-center ${quizData.template === template.id && "border border-purple-800 bg-neutral-200"}`}>
                                 <Image
                                     src={`/templates/${template.src}.png`}
                                     alt="template"
@@ -39,7 +39,8 @@ export default function ThemesPanel({ setShowPanel }: ThemesPanelProps) {
                                     unoptimized
                                 />
                             </div>
-                        </Button>
+                            <div className="text-center text-xs w-full ">{template.name}</div>
+                        </div>
                     ))}
                 </div>
             </div>

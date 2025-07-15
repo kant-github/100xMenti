@@ -73,7 +73,7 @@ export default function Home({ params }: PageProps) {
 
     return (
         <div className="w-full h-screen flex flex-col">
-            <CreateQuizNavBar />
+            <CreateQuizNavBar quizId={quizId} />
             <div className="bg-neutral-200 w-full flex-1 overflow-hidden">
                 <Panels />
             </div>
